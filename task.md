@@ -55,6 +55,7 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Chưa 
 | SPE-02 | Viết docs/threat-model.md: trust boundary, lộ session key, caller sai, đường vòng Safe/module, router xấu, quản trị | Phú | SPE-01 | TODO |
 | SPE-03 | Chốt schema ở shared, error codes và docs/interfaces.md; có fixture hợp lệ cho policy/snapshot/plan/scenario/result | Cả nhóm | SPE-01 | TODO |
 | SPE-04 | Chốt 15 scenarios bên dưới, khả năng local/Fuji và docs/acceptance.md | Hoàng + Phú | SPE-01, SPE-03 | TODO |
+| SPE-05 | Chốt D-09 (nguồn lãi, interface vault, mock hay fork mainnet) và D-10 (phạm vi MVP); viết docs/yield-sources.md có nguồn kiểm chứng cho pitch | Cả nhóm | SET-01 | TODO |
 
 ### Người 1 — Phú: hợp đồng và bảo mật
 
@@ -62,9 +63,9 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Chưa 
 | --- | --- | --- | --- | --- |
 | CON-01 | Tích hợp Safe và PolicyModule tối thiểu; có unit/integration chứng minh session hợp lệ swap được | Phú | SET-02, SPE-01, ENV-01 | TODO |
 | CON-02 | Grant/expiry/revoke/caller; owner-only policy update; agent không tự nâng quyền; tests cho từng nhánh | Phú | CON-01 | TODO |
-| CON-03 | Kiểm tra token/router/function/recipient và chỉ hỗ trợ swap đã chốt; các lệnh sai bị chặn | Phú | CON-01, SPE-02 | TODO |
+| CON-03 | Kiểm tra token/router/vault/function/recipient; chỉ hỗ trợ swap và gửi/rút vault đã chốt; vault ngoài whitelist hoặc rút về ví lạ bị chặn | Phú | CON-01, SPE-02, SPE-05 | TODO |
 | CON-04 | Rolling cap theo spec, cộng dồn và biên 24h; không reset sai khi đổi session/policy; tests tương ứng | Phú | CON-02, SPE-01 | TODO |
-| CON-05 | Giá/độ mới/minOut/slippage, approve đúng spender/phạm vi; router revert rollback đúng | Phú | CON-03, CON-04, ENV-01 | TODO |
+| CON-05 | Giá/độ mới/minOut/slippage, approve đúng spender (router hoặc vault)/phạm vi; router/vault revert rollback đúng | Phú | CON-03, CON-04, ENV-01 | TODO |
 | CON-06 | Unit/integration/fuzz/invariant các đường đi của tiền; không có đường agent bypass; lưu kết quả kiểm chứng | Phú | CON-02, CON-03, CON-04, CON-05 | TODO |
 | CON-07 | Bàn giao ABI, event/custom error, interface quản trị/đọc trạng thái và review tương thích chain-client | Phú | CON-01, SPE-03 | TODO |
 
@@ -74,13 +75,14 @@ CON-07 có thể bàn giao bản tối thiểu sau CON-01, rồi cập nhật c�
 
 | ID | Công việc / tiêu chí DONE | Owner | Phụ thuộc | Status |
 | --- | --- | --- | --- | --- |
-| ENV-01 | Mock token/price/router/router lỗi; triển khai và nạp local, đọc được số dư | Tiến | SET-02, SPE-01 | TODO |
+| ENV-01 | Mock token/price/router/router lỗi và 1–2 mock vault sinh lời theo thời gian (stablecoin cho vay, sAVAX/RWA); triển khai và nạp local, đọc được số dư và vị thế vault | Tiến | SET-02, SPE-01, SPE-05 | TODO |
 | ENV-02 | Script deploy/seed/reset, snapshot/time controls local; metadata deployment; người khác chạy lại được | Tiến | ENV-01, CON-01 | TODO |
 | CHN-01 | Đọc policy/session/cap/balances, xây lệnh swap/grant/revoke, gửi/chờ receipt và decode lỗi | Tiến | SPE-03, CON-07 | TODO |
-| AGT-01 | Thuật toán bằng fixture: tỷ trọng/độ lệch, NO_ACTION/READY/BLOCKED, cap còn lại, số nguyên; có kiểm thử hành vi | Tiến | SET-02, SPE-03 | TODO |
+| AGT-01 | Thuật toán bằng fixture: tỷ trọng/độ lệch (tính cả tài sản trong vault), NO_ACTION/READY/BLOCKED, cap còn lại, số nguyên; kế hoạch gồm swap và gửi/rút vault; có kiểm thử hành vi | Tiến | SET-02, SPE-03, SPE-05 | TODO |
 | AGT-02 | Reader và executor dùng chain-client; một chu kỳ tái cân bằng thật; chống gửi trùng, xử lý revert | Tiến | AGT-01, CHN-01, CON-01 | TODO |
 | AGT-03 | LLM giải thích dữ liệu/kết quả thật; có fallback và không ảnh hưởng giao dịch hoặc verdict | Tiến | AGT-02 | TODO |
 | ENV-03 | Cấu hình/script deploy Fuji; xác minh địa chỉ, token thử nghiệm và capability; bàn giao hướng dẫn | Tiến + Phú | CON-06, ENV-02, CHN-01 | TODO |
+| ENV-04 | (Tùy chọn, ăn điểm) Fork mainnet Avalanche trên Anvil để chạy gửi/rút với vault thật (Aave/Benqi); ghi rõ block fork | Tiến | ENV-02, SPE-05 | TODO |
 
 ### Người 3 — Hoàng: lab, backend và dashboard
 
@@ -92,7 +94,7 @@ CON-07 có thể bàn giao bản tối thiểu sau CON-01, rồi cập nhật c�
 | LAB-04 | Adapter Fuji khai báo capability; bỏ qua tình huống không hỗ trợ đúng verdict; không dùng thao tác local trên Fuji | Hoàng | LAB-03, ENV-03 | TODO |
 | API-01 | API theo schema và SQLite/migrations; tạo/xem lại run mẫu, steps/assertions/evidence | Hoàng | SET-02, SPE-03 | TODO |
 | API-02 | Worker gọi agent/lab thật, quản lý tiến trình và khóa local dùng chung; lỗi không làm mất run | Hoàng | API-01, LAB-02, AGT-02 | TODO |
-| WEB-01 | Ba màn hình dùng fixture chung: quỹ/chính sách, chạy kiểm thử, kết quả; ghi rõ dữ liệu mẫu | Hoàng | SET-02, SPE-03 | TODO |
+| WEB-01 | Ba màn hình dùng fixture chung: quỹ/chính sách (gồm vị thế vault và lãi tích lũy), chạy kiểm thử, kết quả; ghi rõ dữ liệu mẫu | Hoàng | SET-02, SPE-03 | TODO |
 | WEB-02 | Nối API thật, progress/history/evidence, refresh còn lịch sử; không hiển thị bằng chứng giả | Hoàng | WEB-01, API-02 | TODO |
 | WEB-03 | Ví owner cấp/thu hồi session/sửa policy qua chain client; xử lý sai mạng, hủy ký, pending/revert | Hoàng | WEB-02, CHN-01, CON-02 | TODO |
 | REP-01 | Export JSON/CSV gồm environment/version/policy/steps/assertions/before-after/tx; kiểm tra tải lại báo cáo | Hoàng | LAB-03, API-01 | TODO |
@@ -109,27 +111,29 @@ CON-07 có thể bàn giao bản tối thiểu sau CON-01, rồi cập nhật c�
 | REV-03 | Cài từ đầu trên máy khác theo README, chạy demo, đối chiếu bằng chứng và ghi kết quả | Hoàng | DOC-01, REV-01, REV-02, QUA-01 | TODO |
 | DEM-01 | Quay demo: swap đúng, chặn vi phạm, thu hồi session, xem/export bằng chứng; thông tin deployment đúng | Cả nhóm | REV-03 | TODO |
 
-## 5. Danh sách 15 tình huống kiểm thử chính
+## 5. Danh sách tình huống kiểm thử chính
 
-Đây là kế hoạch, chưa có scenario nào được triển khai/chạy. Các biến thể dùng cùng ID cha hoặc thêm ID mới trong catalog khi chốt SPE-04.
+Đây là kế hoạch, chưa có scenario nào được triển khai/chạy. Cột MVP đánh dấu tình huống bắt buộc cho demo (đề xuất D-10); các tình huống khác làm sau khi MVP chạy ổn. Các biến thể dùng cùng ID cha hoặc thêm ID mới trong catalog khi chốt SPE-04.
 
-| ID | Tình huống | Bằng chứng/kỳ vọng tối thiểu | Status |
-| --- | --- | --- | --- |
-| SC-01 | Danh mục chưa cần rebalance | NO_ACTION; không gửi giao dịch; số dư/cap không đổi | TODO |
-| SC-02 | Tái cân bằng hợp lệ | Receipt thành công; token đầu ra về Safe; số dư/cap đúng | TODO |
-| SC-03 | Giao dịch đúng phần cap còn lại | Thành công tại biên; tổng chi không vượt cap | TODO |
-| SC-04 | Một lệnh vượt cap | Từ chối; token/cap không đổi | TODO |
-| SC-05 | Chia nhỏ vượt tổng cap | Với cap 100 USD: 60 và 30 thành công, 20 bị chặn; cap dùng 90 USD | TODO |
-| SC-06 | Biên rolling 24 giờ | Kiểm tra ngay trước/đúng/sau biên theo spec; phần chi hết hiệu lực đúng lúc | TODO |
-| SC-07 | Token ngoài whitelist | Cả biến thể tokenIn và tokenOut bị từ chối; không mất token | TODO |
-| SC-08 | Router/hàm ngoài phạm vi | Các biến thể router/selector sai bị chặn; tài sản/allowance không sai | TODO |
-| SC-09 | Recipient là ví lạ | Bị từ chối; token ví lạ không tăng; Safe/cap không đổi | TODO |
-| SC-10 | Session hết hạn | Không có swap mới; token/cap không đổi | TODO |
-| SC-11 | Session đã thu hồi | Owner revoke thành công; lệnh tiếp theo bị chặn; token/cap không đổi | TODO |
-| SC-12 | Caller chưa được cấp quyền | Không thực thi được; không sửa được policy; token/cap không đổi | TODO |
-| SC-13 | Nguồn giá cũ/lỗi | Bị từ chối theo spec; không ghi nhận là lỗi RPC chặn thành công | TODO |
-| SC-14 | Đầu ra thấp/slippage sai | Chặn minOut không đạt policy hoặc revert khi output thiếu; tài sản/cap rollback | TODO |
-| SC-15 | Router lỗi và kiểm soát approve | Gây revert; token/cap rollback; không còn allowance ngoài chính sách; biến thể spender sai bị chặn | TODO |
+| ID | Tình huống | Bằng chứng/kỳ vọng tối thiểu | MVP | Status |
+| --- | --- | --- | --- | --- |
+| SC-01 | Danh mục chưa cần rebalance | NO_ACTION; không gửi giao dịch; số dư/cap không đổi |  | TODO |
+| SC-02 | Tái cân bằng hợp lệ | Receipt thành công; token đầu ra (và shares vault nếu có) về Safe; số dư/cap đúng | ✔ | TODO |
+| SC-03 | Giao dịch đúng phần cap còn lại | Thành công tại biên; tổng chi không vượt cap |  | TODO |
+| SC-04 | Một lệnh vượt cap | Từ chối; token/cap không đổi | ✔ | TODO |
+| SC-05 | Chia nhỏ vượt tổng cap | Với cap 100 USD: 60 và 30 thành công, 20 bị chặn; cap dùng 90 USD |  | TODO |
+| SC-06 | Biên rolling 24 giờ | Kiểm tra ngay trước/đúng/sau biên theo spec; phần chi hết hiệu lực đúng lúc |  | TODO |
+| SC-07 | Token ngoài whitelist | Cả biến thể tokenIn và tokenOut bị từ chối; không mất token | ✔ | TODO |
+| SC-08 | Router/hàm ngoài phạm vi | Các biến thể router/selector sai bị chặn; tài sản/allowance không sai |  | TODO |
+| SC-09 | Recipient là ví lạ | Bị từ chối; token ví lạ không tăng; Safe/cap không đổi | ✔ | TODO |
+| SC-10 | Session hết hạn | Không có swap mới; token/cap không đổi |  | TODO |
+| SC-11 | Session đã thu hồi | Owner revoke thành công; lệnh tiếp theo bị chặn; token/cap không đổi | ✔ | TODO |
+| SC-12 | Caller chưa được cấp quyền | Không thực thi được; không sửa được policy; token/cap không đổi |  | TODO |
+| SC-13 | Nguồn giá cũ/lỗi | Bị từ chối theo spec; không ghi nhận là lỗi RPC chặn thành công |  | TODO |
+| SC-14 | Đầu ra thấp/slippage sai | Chặn minOut không đạt policy hoặc revert khi output thiếu; tài sản/cap rollback |  | TODO |
+| SC-15 | Router lỗi và kiểm soát approve | Gây revert; token/cap rollback; không còn allowance ngoài chính sách; biến thể spender sai bị chặn |  | TODO |
+| SC-16 | Gửi vào vault ngoài whitelist | Bị từ chối; tài sản Safe/cap không đổi; không còn allowance cho vault lạ | ✔ | TODO |
+| SC-17 | Rút vault về ví lạ | Bị từ chối; token ví lạ không tăng; shares vault của Safe không đổi |  | TODO |
 
 Kiểm thử bổ sung ở cấp contract: admin trái phép, replay/reentrancy nếu kiến trúc liên quan, đổi session/policy để lách cap, decimals/làm tròn, giới hạn lịch sử chi và các invariant. Không gộp lỗi môi trường vào PASS. Với scenario cần tua thời gian/reset hoặc router gây lỗi, capability Fuji phải được xác nhận trước khi chạy.
 
@@ -139,6 +143,7 @@ Thêm dòng mới lên đầu. Ngày giờ dùng Asia/Saigon. Link file ghi theo
 
 | Ngày giờ | Người cập nhật | Task | Đã làm / file hoặc commit | Kiểm chứng | Vướng mắc / bàn giao / bước tiếp |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-11 | Hoàng | SPE-05 (đề xuất) | Định hướng lại thành quản lý quỹ sinh lời trên Avalanche; thêm gửi/rút vault vào phạm vi, mục pitch 3a, D-09, D-10; cập nhật ENV-01, CON-03, CON-05, AGT-01, WEB-01; thêm SPE-05, ENV-04, SC-16, SC-17 và cột MVP; path: project_context.md, task.md, README.md | Chỉ sửa tài liệu, chưa có code để chạy | Chờ Phú và Tiến duyệt nhánh; họp chốt D-09/D-10 rồi chia lại việc |
 | 2026-11-09 | Codex | SET-01 | Dựng thư mục; tạo README.md, project_context.md, task.md, .gitignore | Đối chiếu cây thư mục, link tài liệu nội bộ và trạng thái khởi tạo; chưa có code chức năng để chạy test | Cả nhóm nhận task đặc tả và SET-02 |
 
 Mẫu sao chép vào bảng trên:

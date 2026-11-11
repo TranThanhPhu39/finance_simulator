@@ -2,11 +2,15 @@
 
 Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Trạng thái: đã dựng cây thư mục và tài liệu, chưa triển khai chức năng.
 
+Cập nhật 2026-11-11 (đề xuất của Hoàng, chờ nhóm duyệt): định hướng lại thành **AI quản lý quỹ sinh lời trên Avalanche**. Agent phân bổ quỹ vào các nguồn lãi (stablecoin cho vay, sAVAX, trái phiếu token hóa) thay vì chỉ đổi qua lại token thử nghiệm. Kiến trúc policy/lab giữ nguyên; thêm thao tác gửi/rút vault và thu gọn phạm vi MVP. Xem mục 1, 2, 3, 3a, D-09, D-10.
+
 Tài liệu này lưu mục tiêu, phạm vi, kiến trúc và quy ước chung. Tiến độ thực hiện nằm trong [task.md](task.md). Khi đổi phạm vi hoặc giao diện tích hợp, cập nhật tài liệu này cùng task liên quan.
 
 ## 1. Mục tiêu và giá trị sản phẩm
 
-Xây dựng agent tự động tái cân bằng tài sản, có hợp đồng giới hạn quyền trên Avalanche và phòng kiểm thử để chứng minh các giới hạn được thực thi.
+Xây dựng agent tự động quản lý quỹ (treasury) của DAO/startup trên Avalanche: phân bổ và tái cân bằng tài sản giữa các nguồn sinh lời, có hợp đồng giới hạn quyền và phòng kiểm thử để chứng minh các giới hạn được thực thi.
+
+Thông điệp chính: *AI quản lý quỹ, nhưng không bao giờ vượt quyền — và mọi giới hạn đều có bằng chứng on-chain trên Avalanche.*
 
 Tài sản nằm trong smart account tích hợp Safe. Agent sử dụng session key được cấp quyền hạn chế. Mọi giao dịch của agent phải đi qua PolicyModule trước khi smart account thực thi. Owner có thể thu hồi session key.
 
@@ -16,8 +20,9 @@ Phòng kiểm thử ở bản đầu chỉ đánh giá agent và PolicyModule do
 
 ## 2. Phạm vi bản đầu
 
-- Một smart account, một agent, hai hoặc ba token thử nghiệm.
+- Một smart account, một agent, hai hoặc ba tài sản: stablecoin, token A và một hoặc hai vị thế sinh lời (vault).
 - Một router và một loại swap với lượng đầu vào cố định (exact-input).
+- Gửi/rút vault sinh lời theo chuẩn ERC-4626 (chuẩn chung cho "két gửi tiết kiệm" on-chain) hoặc interface tương đương của Aave/Benqi; chỉ vault trong whitelist, tài sản rút ra phải về smart account.
 - Session có thời hạn, có thể cấp và thu hồi bởi owner.
 - Giới hạn tổng giá trị đầu vào giao dịch trong 24 giờ gần nhất.
 - Whitelist token đầu vào/đầu ra, router và hàm được hỗ trợ.
@@ -30,11 +35,31 @@ Phòng kiểm thử ở bản đầu chỉ đánh giá agent và PolicyModule do
 
 Chưa đưa vào bản đầu: nhiều agent/smart account, nhiều DEX, chiến lược giao dịch do LLM quyết định, giao dịch tùy ý và kiểm thử sản phẩm bên thứ ba.
 
+**MVP bắt buộc cho demo (đề xuất D-10):** một lần phân bổ quỹ hợp lệ (swap + gửi vault); 4–5 tình huống bị chặn (vượt cap, recipient lạ, token/vault ngoài whitelist, session đã thu hồi); dashboard chạy với dữ liệu thật trên Fuji. Các tình huống và tính năng còn lại (đủ bộ scenario, export CSV, adapter Fuji đầy đủ…) làm sau khi MVP chạy ổn.
+
 ## 3. Ví dụ mục tiêu hoạt động
 
-Danh mục thử nghiệm 1.000 USD, tỷ trọng mục tiêu stablecoin/token A/token B là 60%/30%/10%. Agent xem xét tái cân bằng khi độ lệch lớn hơn 5 điểm phần trăm. Cap ví dụ là 100 USD trong 24 giờ gần nhất.
+Quỹ thử nghiệm 1.000 USD, tỷ trọng mục tiêu ví dụ:
 
-Các con số trên là cấu hình demo, không phải hằng số bắt buộc. Kế hoạch có thể chỉ tái cân bằng một phần do hạn mức còn lại. Không ép đạt ngay tỷ trọng mục tiêu bằng cách vượt chính sách.
+| Phần | Tỷ trọng | Nguồn lãi (bản thật) | Bản demo |
+| --- | --- | --- | --- |
+| Stablecoin gửi vault cho vay | 60% | Lãi cho vay trên Aave v3 / Benqi | Mock vault trả lãi theo thời gian |
+| sAVAX (AVAX liquid staking) | 30% | Thưởng staking AVAX qua Benqi | Mock token tăng giá trị theo thời gian |
+| Trái phiếu token hóa (RWA) | 10% | Lãi trái phiếu Chính phủ Mỹ token hóa | Mock vault; nói rõ là mô phỏng |
+
+Agent xem xét tái cân bằng khi độ lệch lớn hơn 5 điểm phần trăm. Cap ví dụ là 100 USD trong 24 giờ gần nhất.
+
+Các con số trên là cấu hình demo, không phải hằng số bắt buộc. Kế hoạch có thể chỉ tái cân bằng một phần do hạn mức còn lại. Không ép đạt ngay tỷ trọng mục tiêu bằng cách vượt chính sách. Lợi suất hiển thị trong demo là của mock, không được trình bày như lợi suất thật.
+
+## 3a. Câu chuyện pitch (3 phút)
+
+| Câu hỏi | Trả lời |
+| --- | --- |
+| Why on-chain? | Giao tiền cho AI rất rủi ro. Giới hạn của AI (cap, whitelist, recipient phải là quỹ, thu hồi quyền) do hợp đồng ép buộc, không phụ thuộc backend. Phòng kiểm thử tạo bằng chứng công khai rằng lệnh vượt quyền bị chặn. |
+| Why Avalanche? | Phí thấp và xác nhận dưới 1 giây nên agent tái cân bằng thường xuyên vẫn có lãi. Hệ sinh thái có sẵn nguồn lãi cho treasury: Aave v3, Benqi (cho vay, sAVAX) và tài sản thật token hóa. Hướng mở rộng: mỗi tổ chức chạy policy trên Avalanche L1 riêng (chỉ nói như roadmap). |
+| Tiền/lãi từ đâu? | Lãi cho vay stablecoin, thưởng staking AVAX, lãi trái phiếu token hóa. Mô hình kinh doanh: phí quản lý theo % tài sản hoặc % lãi, cộng dịch vụ kiểm định AI agent từ phòng kiểm thử. |
+
+Trước khi pitch phải kiểm chứng lại các nguồn lãi và sản phẩm RWA đang có trên Avalanche (tên, mạng, có trên Fuji hay không) và ghi nguồn vào `docs/`. Không nêu con số lợi suất chưa kiểm chứng.
 
 ## 4. Kiến trúc và ranh giới trách nhiệm
 
@@ -44,7 +69,7 @@ Owner wallet ── ký cấp/thu hồi session, sửa policy ──> Safe / Pol
 Web ──> API + worker ──> Agent hoặc Lab ──> Chain client
                                              │
                                              v
-                        Session key ──> PolicyModule ──> Safe ──> Router
+                        Session key ──> PolicyModule ──> Safe ──> Router / Vault
                                              │                    │
                                              └── receipt/state ──┘
                                                       │
@@ -56,7 +81,7 @@ LLM explanation <── dữ liệu có cấu trúc từ kế hoạch và kết 
 
 | Khối | Trách nhiệm | Không được thay thế |
 | --- | --- | --- |
-| Contracts | Xác thực session, kiểm tra policy và thực thi giới hạn on-chain | Không dựa vào kiểm tra ở UI/agent để bảo vệ tiền |
+| Contracts | Xác thực session, kiểm tra policy (swap và gửi/rút vault) và thực thi giới hạn on-chain | Không dựa vào kiểm tra ở UI/agent để bảo vệ tiền |
 | Chain client | Đọc trạng thái, xây/gửi giao dịch được hỗ trợ, đọc receipt và giải mã lỗi | Không cung cấp đường gọi tùy ý để agent bỏ qua policy |
 | Agent | Đọc danh mục, lập kế hoạch theo quy tắc, thực thi và giải thích | Không có quyền quản trị owner |
 | Lab | Dựng tình huống, chạy, kiểm tra trạng thái trước/sau và tổng hợp bằng chứng | Không coi thông báo UI là bằng chứng on-chain |
@@ -104,7 +129,7 @@ uni_hackathon/
 │   │   ├── src/abi/              # ABI xuất từ contracts
 │   │   └── test/
 │   ├── testkit/                  # Người 2 — môi trường thử nghiệm
-│   │   ├── contracts/            # Mock token, giá, router và router lỗi
+│   │   ├── contracts/            # Mock token, giá, router, router lỗi, vault sinh lời
 │   │   ├── src/                  # Deploy/seed/reset qua chain client
 │   │   └── test/
 │   ├── agent/                    # Người 2 — agent và explanation
@@ -158,9 +183,9 @@ Các cấu trúc dưới đây là danh mục cần thiết kế, chưa phải s
 
 | Cấu trúc | Nội dung tối thiểu cần thống nhất |
 | --- | --- |
-| PolicyConfig | Account/network, session và thời hạn, cap/window, token/router/function whitelist, recipient, slippage, điều kiện nguồn giá |
-| PortfolioSnapshot | Account, chain/block/timestamp, số dư raw, decimals, giá, giá trị và tỷ trọng |
-| RebalancePlan | ID, snapshot/policy tham chiếu, NO_ACTION/READY/BLOCKED, giao dịch exact-input, lý do |
+| PolicyConfig | Account/network, session và thời hạn, cap/window, token/router/vault/function whitelist, recipient, slippage, điều kiện nguồn giá |
+| PortfolioSnapshot | Account, chain/block/timestamp, số dư raw, decimals, giá, giá trị và tỷ trọng; vị thế vault (shares, giá trị quy đổi, lãi tích lũy) |
+| RebalancePlan | ID, snapshot/policy tham chiếu, NO_ACTION/READY/BLOCKED, các bước swap exact-input và gửi/rút vault, lý do |
 | ScenarioDefinition | ID/version, loại kiểm thử, môi trường hỗ trợ, setup, bước chạy và assertions mong đợi |
 | RunResult | ID/version, environment, policy snapshot, tiến trình, verdict, steps, assertions, before/after, lỗi và bằng chứng giao dịch |
 | ErrorCode | Mã lỗi chung, ánh xạ từ contract revert, lỗi RPC/môi trường và lỗi ứng dụng |
@@ -180,7 +205,8 @@ Các hàm tích hợp dự kiến:
 
 ```text
 Chain client: readPolicy, readSession, readRemainingCap, readPortfolioBalances,
-              buildSwapTransaction, buildGrantSessionTransaction,
+              buildSwapTransaction, buildVaultDepositTransaction,
+              buildVaultWithdrawTransaction, buildGrantSessionTransaction,
               buildRevokeSessionTransaction, decodePolicyError
 Agent:        previewRebalance, runRebalance
 Lab:          listScenarios, runScenario, runSuite
@@ -190,7 +216,7 @@ API dự kiến: `GET /environment`, `GET /treasury`, `POST /rebalance/preview`,
 
 ## 9. Luồng hoạt động
 
-**Sử dụng bình thường:** Owner kết nối ví và chuẩn bị Safe → nạp token thử nghiệm → đặt policy/tỷ trọng → cấp session → agent đọc số dư/giá → lập kế hoạch → gửi qua module → kiểm tra policy và swap → đọc receipt/trạng thái → cập nhật dashboard và giải thích.
+**Sử dụng bình thường:** Owner kết nối ví và chuẩn bị Safe → nạp token thử nghiệm → đặt policy/tỷ trọng → cấp session → agent đọc số dư/giá/vị thế vault → lập kế hoạch → gửi qua module → kiểm tra policy rồi swap hoặc gửi/rút vault → đọc receipt/trạng thái → cập nhật dashboard và giải thích.
 
 **Phòng kiểm thử:** Chọn scenario → dựng trạng thái → snapshot trước → chạy agent hoặc lệnh thử vượt quyền → thu receipt/lỗi → snapshot sau → assertions → lưu kết quả và hiển thị PASS/FAIL/ERROR/UNSUPPORTED.
 
@@ -208,6 +234,8 @@ Ví dụ recipient lạ: PASS chỉ khi chứng minh lệnh bị từ chối và
 | D-06 | Thuật toán ưu tiên cặp swap, xử lý cap còn lại và tái cân bằng một phần | Tiến |
 | D-07 | Schema/API/version, error mapping, quy tắc kết luận và phạm vi scenario trên Fuji | Cả nhóm |
 | D-08 | Phiên bản toolchain, thư viện, lệnh chạy và CI | Cả nhóm |
+| D-09 | Nguồn lãi dùng trong demo (Aave/Benqi/sAVAX/RWA); interface vault (ERC-4626 hay interface riêng); mock trên Fuji hay fork mainnet trên Anvil; nguồn kiểm chứng cho pitch | Cả nhóm (Tiến dẫn phần mock) |
+| D-10 | Phạm vi MVP cho demo (mục 2) và thứ tự cắt giảm nếu thiếu thời gian | Cả nhóm |
 
 Ghi kết luận ngay tại đây hoặc trong tài liệu `docs/` có liên kết, kèm ngày và task liên quan. Chưa coi một quyết định là đã duyệt chỉ vì nó xuất hiện trong ví dụ.
 
@@ -215,6 +243,7 @@ Ghi kết luận ngay tại đây hoặc trong tài liệu `docs/` có liên k�
 
 1. Chạy được một swap hợp lệ bằng session key qua PolicyModule; số dư thay đổi đúng.
 2. Lệnh vượt quyền bị chặn với bằng chứng token, recipient và cap trước/sau.
+2a. Gửi vault hợp lệ thành công và hiển thị được lãi tích lũy; gửi vào vault ngoài whitelist hoặc rút về ví lạ bị chặn.
 3. Nhiều lệnh nhỏ không vượt được tổng cap; có kiểm tra biên rolling 24 giờ.
 4. Owner thu hồi session; session đó không thực thi được giao dịch mới.
 5. Router lỗi không làm sai tài sản token, cap hoặc để allowance ngoài chính sách.

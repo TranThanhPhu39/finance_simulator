@@ -4,6 +4,8 @@ Ngày: 2026-11-14. RPC công khai đã được kiểm tra read-only trả chain
 
 Script `contracts/script/DeployFuji.s.sol` đã build, dùng cùng đường triển khai đã chạy local. Khóa chain vào 43113 và chỉ đọc biến `FUJI_DEPLOYER_PRIVATE_KEY`, tách khỏi khóa deploy local.
 
+Nhánh review: [feat/phu-policy-module](https://github.com/TranThanhPhu39/finance_simulator/tree/feat/phu-policy-module). Local contract/agent đã được tái hiện thành công ở GitHub Actions; đây vẫn chưa phải bằng chứng giao dịch trên Fuji.
+
 ## Dữ liệu cần cấu hình trên máy
 
 1. Ví testnet riêng có đủ AVAX test trả phí gas; không dùng ví giữ tài sản thật.

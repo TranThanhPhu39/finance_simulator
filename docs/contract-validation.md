@@ -58,5 +58,6 @@ Bằng chứng đầy đủ nằm ở `.runtime/agent-integration.json`, gồm s
 - Solidity 0.8.31, EVM Paris; Safe v1.4.1 và OpenZeppelin v5.2.0 cố định, license/upstream có trong repo.
 - ABI export có 57 entries, gồm hàm/event/error/constructor; nguồn là compiler artifact.
 - Có lint nhắc về timestamp/cast đã có kiểm tra giới hạn và transfer trong fixture đối kháng; không có compiler error. Timestamp là thiết kế window/session, không phải wall-clock bảo đảm tuyệt đối.
-- Chưa kiểm toán độc lập, chưa xác nhận CI từ GitHub, chưa triển khai Fuji, chưa tích hợp DEX/vault thật.
+- [GitHub Actions run 43613122263](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/43613122263) đã PASS cả hai jobs contracts và agent-integration cho commit code `f047624`. Bao gồm format/build/65 Solidity tests/ABI consistency, typecheck/22 TS tests và live agent trên Anvil Linux. Artifact local-agent-evidence lưu report tích hợp, retention 7 ngày.
+- Chưa kiểm toán độc lập, chưa triển khai Fuji, chưa tích hợp DEX/vault thật.
 - Schema/planner/client đã khớp contract trong bài tích hợp local; cần Tiến/Hoàng review trước khi ghép API/lab/dashboard. Fuji bị vướng do thiếu cấu hình ví thử nghiệm; hướng dẫn ở fuji-deployment.md.

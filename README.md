@@ -1,6 +1,8 @@
 # Treasury Agent Lab
 
-Agent tái cân bằng tài sản có giới hạn quyền trên Avalanche, kết hợp phòng kiểm thử kiểm chứng PolicyModule bằng trạng thái tài sản trước/sau.
+AI agent quản lý quỹ sinh lời trên Avalanche (stablecoin cho vay, sAVAX, trái phiếu token hóa) với quyền bị giới hạn on-chain, kết hợp phòng kiểm thử kiểm chứng PolicyModule bằng trạng thái tài sản trước/sau.
+
+> AI quản lý quỹ, nhưng không bao giờ vượt quyền — và mọi giới hạn đều có bằng chứng on-chain trên Avalanche.
 
 Repo hiện có khung thư mục và tài liệu khởi tạo; chưa có ứng dụng, hợp đồng, dependency hoặc lệnh chạy chức năng.
 
@@ -11,7 +13,7 @@ Repo hiện có khung thư mục và tài liệu khởi tạo; chưa có ứng d
 contracts/             Phú: Safe, PolicyModule, kiểm thử bảo mật
 packages/shared/       Cả nhóm: schema, mã lỗi, dữ liệu mẫu
 packages/chain-client/ Tiến: đọc/gửi giao dịch và receipt
-packages/testkit/      Tiến: token/giá/router mô phỏng, deploy/seed/reset
+packages/testkit/      Tiến: token/giá/router/vault mô phỏng, deploy/seed/reset
 packages/agent/        Tiến: thuật toán rebalance và giải thích
 packages/lab/          Hoàng: scenario runner, assertions, evidence
 apps/api/              Hoàng: API, worker, SQLite

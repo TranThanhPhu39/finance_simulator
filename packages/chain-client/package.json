@@ -1,0 +1,9 @@
+{
+  "name": "@repo/chain-client",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "viem": "^2.13.0"
+  }
+}

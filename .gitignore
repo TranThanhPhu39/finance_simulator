@@ -23,6 +23,8 @@ contracts/broadcast/
 *.sqlite3-*
 *.log
 .runtime/
+# Local addresses and receipts become stale after restarting Anvil.
+deployments/local.json
 
 # OS files
 .DS_Store

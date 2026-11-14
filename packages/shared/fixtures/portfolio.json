@@ -1,0 +1,48 @@
+{
+  "accountAddress": "0x1000000000000000000000000000000000000001",
+  "network": "local",
+  "blockNumber": 1,
+  "timestamp": 1800000000,
+  "totalValueUsd": "100000000000",
+  "positions": [
+    {
+      "tokenAddress": "0x2000000000000000000000000000000000000001",
+      "symbol": "USDC",
+      "decimals": 6,
+      "rawBalance": "600000000",
+      "priceUsd": "100000000",
+      "valueUsd": "60000000000",
+      "currentBps": 6000,
+      "targetBps": 2000,
+      "isVaultPosition": false
+    },
+    {
+      "tokenAddress": "0x2000000000000000000000000000000000000002",
+      "symbol": "A",
+      "decimals": 18,
+      "rawBalance": "40000000000000000000",
+      "priceUsd": "1000000000",
+      "valueUsd": "40000000000",
+      "currentBps": 4000,
+      "targetBps": 3000,
+      "isVaultPosition": false
+    },
+    {
+      "tokenAddress": "0x2000000000000000000000000000000000000001",
+      "vaultAddress": "0x4000000000000000000000000000000000000001",
+      "symbol": "vUSDC",
+      "decimals": 6,
+      "rawBalance": "0",
+      "priceUsd": "100000000",
+      "valueUsd": "0",
+      "currentBps": 0,
+      "targetBps": 5000,
+      "isVaultPosition": true,
+      "vaultShares": "0",
+      "vaultConversion": {
+        "assets": "1000000",
+        "shares": "1000000"
+      }
+    }
+  ]
+}

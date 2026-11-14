@@ -2,10 +2,16 @@
   "name": "treasury-agent-lab",
   "private": true,
   "scripts": {
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test packages/agent/test/rebalancer.test.ts packages/agent/test/executor.test.ts packages/chain-client/test/policy-client.test.ts",
+    "agent:demo": "tsx packages/agent/test/demo-run.ts",
+    "agent:integration": "tsx packages/agent/test/local-integration.ts",
     "contracts:build": "cd contracts && forge build",
-    "contracts:test": "cd contracts && forge test"
+    "contracts:test": "cd contracts && forge test",
+    "contracts:abi": "node scripts/export-abi.mjs",
+    "contracts:record-local": "node scripts/record-local-deployment.mjs",
+    "contracts:smoke": "node scripts/smoke-contracts.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

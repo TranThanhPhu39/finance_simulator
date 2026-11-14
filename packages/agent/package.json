@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "main": "./src/index.ts",
   "dependencies": {
+    "@repo/chain-client": "workspace:*",
+    "viem": "^2.13.0",
     "@repo/shared": "workspace:*"
   }
 }

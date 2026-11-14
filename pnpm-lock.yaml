@@ -20,9 +20,15 @@ importers:
 
   packages/agent:
     dependencies:
+      '@repo/chain-client':
+        specifier: workspace:*
+        version: link:../chain-client
       '@repo/shared':
         specifier: workspace:*
         version: link:../shared
+      viem:
+        specifier: ^2.13.0
+        version: 2.57.19(typescript@5.9.3)
 
   packages/chain-client:
     dependencies:

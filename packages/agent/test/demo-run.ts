@@ -53,13 +53,14 @@ async function main() {
     sessionKey: '0x2222222222222222222222222222222222222222',
     sessionExpiresAt: Math.floor(Date.now() / 1000) + 86400,
     isRevoked: false,
+    capScope: 'SWAP_INPUT_ONLY',
     cap24hUsd: '10000000000',
     remainingCapUsd: '10000000000', // Còn $100
     maxSlippageBps: 50,
     maxPriceAgeSec: 3600,
-    whitelistedTokens: [],
+    whitelistedTokens: ['0x0000000000000000000000000000000000000001', '0x0000000000000000000000000000000000000002', '0x0000000000000000000000000000000000000003'],
     whitelistedVaults: [],
-    whitelistedRouters: [],
+    whitelistedRouters: ['0x9999999999999999999999999999999999999999'],
     allowedRecipient: '0x1111111111111111111111111111111111111111'
   };
 

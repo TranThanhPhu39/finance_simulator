@@ -26,11 +26,11 @@ Không dùng PASS/FAIL của scenario làm trạng thái task. Không tự ghi t
 
 | Thành viên | Phạm vi | Task đang làm | Đã có | Vướng mắc | Bước tiếp theo | Cập nhật |
 | --- | --- | --- | --- | --- | --- | --- |
-| Phú — Người 1 | Contracts và bảo mật | Chưa nhận | Khung thư mục | Chưa ghi nhận | Nhận SPE-01, SPE-02, CON-01 | 2026-11-09 |
-| Tiến — Người 2 | Testkit, chain client, agent | Chưa nhận | Khung thư mục | Chưa ghi nhận | Cùng chốt SPE-03; nhận ENV-01 | 2026-11-09 |
+| Phú — Người 1 | Contracts và bảo mật | SPE-01, SPE-02, CON-01 đến CON-07: REVIEW; ENV-03: BLOCKED | Safe/module + live agent integration; 65 Solidity + 22 TS tests PASS | Fuji chưa có ví testnet được cấu hình | Tiến/Hoàng review nhánh feat/phu-policy-module; cấu hình ví thử nghiệm cho Fuji | 2026-11-14 |
+| Tiến — Người 2 | Testkit, chain client, agent | CHN-01, AGT-01, AGT-02: REVIEW cùng Phú | Planner cap swap-only, typed vault requests, decoder và reader/executor đã chạy local | Cần review chiến lược và durable dedup khi ghép backend | Xem docs/interfaces.md và docs/contract-handoff.md | 2026-11-14 |
 | Hoàng — Người 3 | Lab, API, web | Chưa nhận | Khung thư mục | Chưa ghi nhận | Cùng chốt SPE-03; nhận LAB-01 | 2026-11-09 |
 
-Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Chưa có bằng chứng thành viên đã triển khai code; không suy diễn các công việc đã hoàn thành ngoài phần khởi tạo bên dưới.
+Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Có code ban đầu của Tiến và phần hợp đồng local của Phú; chưa đánh dấu DONE toàn bộ task thành viên khi chưa kiểm chứng đủ tiêu chí tích hợp. REVIEW nghĩa là đã có đầu ra để kiểm tra, chưa phải đã được thành viên khác duyệt.
 
 ## 3. Mốc tích hợp chung
 
@@ -50,10 +50,10 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Chưa 
 | ID | Công việc / tiêu chí DONE | Owner | Phụ thuộc | Status |
 | --- | --- | --- | --- | --- |
 | SET-01 | Tạo cây thư mục, project_context.md, task.md và hướng dẫn đọc repo | Khởi tạo bởi Codex | — | DONE |
-| SET-02 | Chốt toolchain; tạo workspace/manifests, Foundry config, import mock từ testkit, .env.example; có lệnh cài/build/test được kiểm tra | Cả nhóm | SET-01 | TODO |
-| SPE-01 | Viết docs/policy-spec.md: session, cap/scope/biên 24h, whitelist, recipient, giá/scale, minOut và approve | Phú + Tiến | SET-01 | TODO |
-| SPE-02 | Viết docs/threat-model.md: trust boundary, lộ session key, caller sai, đường vòng Safe/module, router xấu, quản trị | Phú | SPE-01 | TODO |
-| SPE-03 | Chốt schema ở shared, error codes và docs/interfaces.md; có fixture hợp lệ cho policy/snapshot/plan/scenario/result | Cả nhóm | SPE-01 | TODO |
+| SET-02 | Chốt toolchain; tạo workspace/manifests, Foundry config, import mock từ testkit, .env.example; có lệnh cài/build/test được kiểm tra | Cả nhóm | SET-01 | IN_PROGRESS |
+| SPE-01 | Viết docs/policy-spec.md: session, cap/scope/biên 24h, whitelist, recipient, giá/scale, minOut và approve | Phú + Tiến | SET-01 | REVIEW |
+| SPE-02 | Viết docs/threat-model.md: trust boundary, lộ session key, caller sai, đường vòng Safe/module, router xấu, quản trị | Phú | SPE-01 | REVIEW |
+| SPE-03 | Chốt schema ở shared, error codes và docs/interfaces.md; có fixture hợp lệ cho policy/snapshot/plan/scenario/result | Cả nhóm | SPE-01 | IN_PROGRESS |
 | SPE-04 | Chốt 15 scenarios bên dưới, khả năng local/Fuji và docs/acceptance.md | Hoàng + Phú | SPE-01, SPE-03 | TODO |
 | SPE-05 | Chốt D-09 (nguồn lãi, interface vault, mock hay fork mainnet) và D-10 (phạm vi MVP); viết docs/yield-sources.md có nguồn kiểm chứng cho pitch | Cả nhóm | SET-01 | TODO |
 
@@ -61,15 +61,17 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Chưa 
 
 | ID | Công việc / tiêu chí DONE | Owner | Phụ thuộc | Status |
 | --- | --- | --- | --- | --- |
-| CON-01 | Tích hợp Safe và PolicyModule tối thiểu; có unit/integration chứng minh session hợp lệ swap được | Phú | SET-02, SPE-01, ENV-01 | TODO |
-| CON-02 | Grant/expiry/revoke/caller; owner-only policy update; agent không tự nâng quyền; tests cho từng nhánh | Phú | CON-01 | TODO |
-| CON-03 | Kiểm tra token/router/vault/function/recipient; chỉ hỗ trợ swap và gửi/rút vault đã chốt; vault ngoài whitelist hoặc rút về ví lạ bị chặn | Phú | CON-01, SPE-02, SPE-05 | TODO |
-| CON-04 | Rolling cap theo spec, cộng dồn và biên 24h; không reset sai khi đổi session/policy; tests tương ứng | Phú | CON-02, SPE-01 | TODO |
-| CON-05 | Giá/độ mới/minOut/slippage, approve đúng spender (router hoặc vault)/phạm vi; router/vault revert rollback đúng | Phú | CON-03, CON-04, ENV-01 | TODO |
-| CON-06 | Unit/integration/fuzz/invariant các đường đi của tiền; không có đường agent bypass; lưu kết quả kiểm chứng | Phú | CON-02, CON-03, CON-04, CON-05 | TODO |
-| CON-07 | Bàn giao ABI, event/custom error, interface quản trị/đọc trạng thái và review tương thích chain-client | Phú | CON-01, SPE-03 | TODO |
+| CON-01 | Tích hợp Safe và PolicyModule tối thiểu; có unit/integration chứng minh session hợp lệ swap được | Phú | SET-02, SPE-01, ENV-01 | REVIEW |
+| CON-02 | Grant/expiry/revoke/caller; owner-only policy update; agent không tự nâng quyền; tests cho từng nhánh | Phú | CON-01 | REVIEW |
+| CON-03 | Kiểm tra token/router/vault/function/recipient; chỉ hỗ trợ swap và gửi/rút vault đã chốt; vault ngoài whitelist hoặc rút về ví lạ bị chặn | Phú | CON-01, SPE-02, SPE-05 | REVIEW |
+| CON-04 | Rolling cap theo spec, cộng dồn và biên 24h; không reset sai khi đổi session/policy; tests tương ứng | Phú | CON-02, SPE-01 | REVIEW |
+| CON-05 | Giá/độ mới/minOut/slippage, approve đúng spender (router hoặc vault)/phạm vi; router/vault revert rollback đúng | Phú | CON-03, CON-04, ENV-01 | REVIEW |
+| CON-06 | Unit/integration/fuzz/invariant các đường đi của tiền; không có đường agent bypass; lưu kết quả kiểm chứng | Phú | CON-02, CON-03, CON-04, CON-05 | REVIEW |
+| CON-07 | Bàn giao ABI, event/custom error, interface quản trị/đọc trạng thái và review tương thích chain-client | Phú | CON-01, SPE-03 | REVIEW |
 
 CON-07 có thể bàn giao bản tối thiểu sau CON-01, rồi cập nhật cùng CON-02 đến CON-05; không chờ hoàn thiện mọi tính năng mới tích hợp.
+
+Cập nhật phần Phú 2026-11-14: CON-01 đến CON-07 đã có triển khai và tích hợp agent local, chờ review của nhóm. Bằng chứng ở [contract-validation](docs/contract-validation.md), giao diện ở [contract-handoff](docs/contract-handoff.md). Chưa xác nhận Fuji, chưa hoàn thành lab/API/web; các task SC bên dưới vẫn TODO vì đây là tiến độ runner của Hoàng, không phải bộ Solidity tests.
 
 ### Người 2 — Tiến: môi trường, chain client và agent
 
@@ -77,11 +79,11 @@ CON-07 có thể bàn giao bản tối thiểu sau CON-01, rồi cập nhật c�
 | --- | --- | --- | --- | --- |
 | ENV-01 | Mock token/price/router/router lỗi và 1–2 mock vault sinh lời theo thời gian (stablecoin cho vay, sAVAX/RWA); triển khai và nạp local, đọc được số dư và vị thế vault | Tiến | SET-02, SPE-01, SPE-05 | TODO |
 | ENV-02 | Script deploy/seed/reset, snapshot/time controls local; metadata deployment; người khác chạy lại được | Tiến | ENV-01, CON-01 | TODO |
-| CHN-01 | Đọc policy/session/cap/balances, xây lệnh swap/grant/revoke, gửi/chờ receipt và decode lỗi | Tiến | SPE-03, CON-07 | TODO |
-| AGT-01 | Thuật toán bằng fixture: tỷ trọng/độ lệch (tính cả tài sản trong vault), NO_ACTION/READY/BLOCKED, cap còn lại, số nguyên; kế hoạch gồm swap và gửi/rút vault; có kiểm thử hành vi | Tiến | SET-02, SPE-03, SPE-05 | TODO |
-| AGT-02 | Reader và executor dùng chain-client; một chu kỳ tái cân bằng thật; chống gửi trùng, xử lý revert | Tiến | AGT-01, CHN-01, CON-01 | TODO |
+| CHN-01 | Đọc policy/session/cap/balances, xây lệnh swap/grant/revoke, gửi/chờ receipt và decode lỗi | Tiến | SPE-03, CON-07 | REVIEW |
+| AGT-01 | Thuật toán bằng fixture: tỷ trọng/độ lệch (tính cả tài sản trong vault), NO_ACTION/READY/BLOCKED, cap còn lại, số nguyên; kế hoạch gồm swap và gửi/rút vault; có kiểm thử hành vi | Tiến | SET-02, SPE-03, SPE-05 | REVIEW |
+| AGT-02 | Reader và executor dùng chain-client; một chu kỳ tái cân bằng thật; chống gửi trùng, xử lý revert | Tiến | AGT-01, CHN-01, CON-01 | REVIEW |
 | AGT-03 | LLM giải thích dữ liệu/kết quả thật; có fallback và không ảnh hưởng giao dịch hoặc verdict | Tiến | AGT-02 | TODO |
-| ENV-03 | Cấu hình/script deploy Fuji; xác minh địa chỉ, token thử nghiệm và capability; bàn giao hướng dẫn | Tiến + Phú | CON-06, ENV-02, CHN-01 | TODO |
+| ENV-03 | Cấu hình/script deploy Fuji; xác minh địa chỉ, token thử nghiệm và capability; bàn giao hướng dẫn | Tiến + Phú | CON-06, ENV-02, CHN-01 | BLOCKED |
 | ENV-04 | (Tùy chọn, ăn điểm) Fork mainnet Avalanche trên Anvil để chạy gửi/rút với vault thật (Aave/Benqi); ghi rõ block fork | Tiến | ENV-02, SPE-05 | TODO |
 
 ### Người 3 — Hoàng: lab, backend và dashboard
@@ -143,6 +145,8 @@ Thêm dòng mới lên đầu. Ngày giờ dùng Asia/Saigon. Link file ghi theo
 
 | Ngày giờ | Người cập nhật | Task | Đã làm / file hoặc commit | Kiểm chứng | Vướng mắc / bàn giao / bước tiếp |
 | --- | --- | --- | --- | --- | --- |
+| 2026-11-14 | Phú qua Codex | CON-06/07, SPE-03, CHN-01, AGT-01/02, ENV-03 | Bổ sung tests disabled module/zero cap/vault asset/ring wrap; đồng bộ typed schema v0.2, cap swap-only, cash/minOut, block reader, signed executor, ABI decoder; fixture chung; script Fuji và CI live agent; nhánh feat/phu-policy-module | 65 Solidity tests PASS; typecheck + 22 TS tests PASS; live agent swap/deposit/withdraw, duplicate request và revoke PASS; RPC Fuji trả 43113, script build thành công | Mapping BLK-001 đã xử lý; cần nhóm review; Fuji chưa broadcast vì thiếu ví testnet (BLK-002); backend cần persist/lock signer |
+| 2026-11-14 | Phú qua Codex | SPE-01, SPE-02, CON-01 đến CON-07 | PolicyModule + RollingSpend, Safe thật v1.4.1, ERC-4626 controls, tests, script local, ABI, spec/threat model/handoff; ghim OZ v5.2.0 thay remapping 5.7 cần Osaka; thêm CI hợp đồng | forge test -vv: 61 PASS/0 FAIL; fuzz 256/test, invariant 64x32/test; local deploy 19 receipt và smoke 7 tx PASS với đúng custom error + số dư/shares/cap/allowance; format và ABI export PASS; docs/contract-validation.md | REVIEW: Tiến đồng bộ cap swap-only, assets/maxShares/deadline và error decode; Hoàng làm runner; chưa kiểm chứng CI GitHub/Fuji |
 | 2026-11-11 | Hoàng | SPE-05 (đề xuất) | Định hướng lại thành quản lý quỹ sinh lời trên Avalanche; thêm gửi/rút vault vào phạm vi, mục pitch 3a, D-09, D-10; cập nhật ENV-01, CON-03, CON-05, AGT-01, WEB-01; thêm SPE-05, ENV-04, SC-16, SC-17 và cột MVP; path: project_context.md, task.md, README.md | Chỉ sửa tài liệu, chưa có code để chạy | Chờ Phú và Tiến duyệt nhánh; họp chốt D-09/D-10 rồi chia lại việc |
 | 2026-11-09 | Codex | SET-01 | Dựng thư mục; tạo README.md, project_context.md, task.md, .gitignore | Đối chiếu cây thư mục, link tài liệu nội bộ và trạng thái khởi tạo; chưa có code chức năng để chạy test | Cả nhóm nhận task đặc tả và SET-02 |
 
@@ -154,12 +158,14 @@ Mẫu sao chép vào bảng trên:
 
 ## 7. Blocker và thay đổi cần phối hợp
 
-Chưa ghi nhận blocker thực tế. Những vấn đề đang cần chốt đã liệt kê ở D-01 đến D-08 trong project_context.md; đây chưa phải quyết định đã thông qua.
+Đã có điểm cần phối hợp tích hợp bên dưới. Các lựa chọn triển khai local ở policy-spec.md chưa thay thế việc nhóm review các quyết định D-01 đến D-10.
 
 Khi có blocker/thay đổi schema, thêm dòng theo mẫu:
 
 | ID | Task ảnh hưởng | Nội dung / cách tái hiện | Cần ai xử lý | Hướng xử lý / kết luận | Status |
 | --- | --- | --- | --- | --- | --- |
+| BLK-001 | SPE-03, CHN-01, AGT-02, CON-07 | Schema/planner cap/vault requests/error mapping chưa khớp contract | Tiến + Phú | Đã đồng bộ v0.2 và chạy live local; xem docs/interfaces.md, vẫn cần nhóm review | RESOLVED |
+| BLK-002 | ENV-03, M5 | Chưa cấu hình FUJI_DEPLOYER_PRIVATE_KEY và SESSION_ADDRESS của ví thử nghiệm; RPC đúng chain 43113 | Người giữ ví testnet + Phú/Tiến | Cấu hình khóa trên máy, không gửi trong chat; có AVAX test rồi chạy docs/fuji-deployment.md | OPEN |
 | BLK-xxx | TASK-ID | Mô tả cụ thể | Tên | Bước tiếp theo hoặc link quyết định | OPEN / RESOLVED |
 
 Dòng BLK-xxx là mẫu, không phải blocker đang tồn tại. Không lưu private key, mnemonic hoặc nội dung bí mật vào nhật ký và báo cáo.

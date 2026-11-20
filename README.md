@@ -4,7 +4,7 @@ AI agent quản lý quỹ sinh lời trên Avalanche (stablecoin cho vay, sAVAX,
 
 > AI quản lý quỹ, nhưng không bao giờ vượt quyền — và mọi giới hạn đều có bằng chứng on-chain trên Avalanche.
 
-Repo đã có workspace, mock testkit và PolicyModule tích hợp Safe; agent/chain-client đã chạy swap, gửi/rút vault và revoke xuyên suốt local. Lab/API/dashboard và luồng Fuji chưa hoàn thành.
+Repo đã có PolicyModule/Safe, agent/chain-client và phần lab/API/dashboard chạy local. Phòng kiểm thử có 17 scenarios, queue/SQLite, JSON/CSV và dashboard ba màn hình. Luồng Fuji chưa được triển khai xác minh.
 
 - Đọc [project_context.md](project_context.md) để nắm mục tiêu, phạm vi, kiến trúc, cây thư mục đầy đủ và trách nhiệm từng thành viên.
 - Mở [task.md](task.md) để nhận việc, theo dõi tiến độ và ghi nhật ký sau mỗi phiên code.
@@ -32,8 +32,10 @@ Hướng dẫn build/test/deploy hợp đồng nằm ở [contracts/README.md](c
 corepack pnpm@10.11.0 install --frozen-lockfile
 corepack pnpm@10.11.0 typecheck
 corepack pnpm@10.11.0 test
-# Sau khi deploy local mới và ghi metadata như contracts/README.md:
-corepack pnpm@10.11.0 agent:integration
+corepack pnpm@10.11.0 local:prepare
+corepack pnpm@10.11.0 api:dev
+# Terminal thứ hai:
+corepack pnpm@10.11.0 web:dev
 ```
 
-Schema và fixture v0.2 ở `packages/shared/`; xem [interfaces](docs/interfaces.md), [bàn giao hợp đồng](docs/contract-handoff.md) và [kết quả kiểm chứng](docs/contract-validation.md). Việc tiếp theo: Tiến review tích hợp; Hoàng xây runner/API/dashboard; cấu hình ví thử nghiệm theo [hướng dẫn Fuji](docs/fuji-deployment.md). Cập nhật `task.md` sau mỗi phiên.
+Yêu cầu Node 24+ và Foundry. Mở http://127.0.0.1:5173. Hướng dẫn từ đầu, ký owner, kiểm thử và xử lý gián đoạn ở [demo guide](docs/demo-guide.md). [API](docs/api.md), [nghiệm thu lab](docs/acceptance.md), [interfaces](docs/interfaces.md) và [bàn giao hợp đồng](docs/contract-handoff.md) lưu các giới hạn thực tế. Fuji cần cấu hình riêng theo [hướng dẫn](docs/fuji-deployment.md).

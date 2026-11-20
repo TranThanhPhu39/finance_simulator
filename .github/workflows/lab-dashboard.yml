@@ -1,0 +1,58 @@
+name: Lab API and dashboard
+on:
+  push:
+    paths: ['apps/**','packages/**','scripts/local-prepare.mjs','package.json','pnpm-lock.yaml','tsconfig.json','playwright.config.ts','.github/workflows/lab-dashboard.yml']
+  pull_request:
+    paths: ['apps/**','packages/**','scripts/local-prepare.mjs','package.json','pnpm-lock.yaml','tsconfig.json','playwright.config.ts','.github/workflows/lab-dashboard.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-local-stack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Install and verify workspace
+        run: |
+          npm install --global pnpm@10.11.0
+          pnpm install --frozen-lockfile
+          pnpm typecheck
+          pnpm test
+          pnpm build
+          pnpm exec playwright install --with-deps chromium
+      - name: Run lab suite API restart and browser flows
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm local:prepare
+          pnpm lab:integration
+          pnpm local:prepare
+          pnpm api:dev > .runtime/api.log 2>&1 &
+          task_api_pid=$!
+          pnpm web:dev > .runtime/web.log 2>&1 &
+          task_web_pid=$!
+          trap 'kill "$task_api_pid" "$task_web_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..40}; do
+            if curl -fsS http://127.0.0.1:8787/api/health && curl -fsS http://127.0.0.1:5173 >/dev/null; then break; fi
+            sleep 1
+          done
+          pnpm exec playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-dashboard-evidence
+          path: |
+            .runtime/lab-suite.json
+            .runtime/screenshots/
+            .runtime/playwright-results/
+            .runtime/api.log
+            .runtime/web.log
+          if-no-files-found: ignore
+          retention-days: 7

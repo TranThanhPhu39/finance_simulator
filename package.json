@@ -1,12 +1,20 @@
 {
   "name": "treasury-agent-lab",
   "private": true,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "build": "tsc --noEmit",
+    "build": "tsc --noEmit && node apps/web/node_modules/vite/bin/vite.js build apps/web --config apps/web/vite.config.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test packages/agent/test/rebalancer.test.ts packages/agent/test/executor.test.ts packages/chain-client/test/policy-client.test.ts",
+    "test": "node --import tsx --test packages/agent/test/rebalancer.test.ts packages/agent/test/executor.test.ts packages/chain-client/test/policy-client.test.ts packages/lab/test/lab.test.ts apps/api/test/store.test.ts",
     "agent:demo": "tsx packages/agent/test/demo-run.ts",
     "agent:integration": "tsx packages/agent/test/local-integration.ts",
+    "local:prepare": "node scripts/local-prepare.mjs",
+    "api:dev": "tsx apps/api/src/main.ts",
+    "web:dev": "node apps/web/node_modules/vite/bin/vite.js apps/web --config apps/web/vite.config.ts --host 127.0.0.1",
+    "web:build": "node apps/web/node_modules/vite/bin/vite.js build apps/web --config apps/web/vite.config.ts",
+    "lab:integration": "tsx apps/api/test/local-integration.ts",
     "contracts:build": "cd contracts && forge build",
     "contracts:test": "cd contracts && forge test",
     "contracts:abi": "node scripts/export-abi.mjs",
@@ -14,7 +22,8 @@
     "contracts:smoke": "node scripts/smoke-contracts.mjs"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
+    "@playwright/test": "1.56.1",
+    "@types/node": "^24.10.0",
     "tsx": "^4.10.5",
     "typescript": "^5.4.5"
   },

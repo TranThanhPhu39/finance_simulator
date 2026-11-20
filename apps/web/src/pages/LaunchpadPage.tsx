@@ -244,13 +244,13 @@ export const LaunchpadPage: React.FC = () => {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-800 uppercase text-slate-400">
                 <tr>
-                  <th className="pb-2.5">Agent / ERC-8004 ID</th>
-                  <th className="pb-2.5">Trạng thái</th>
-                  <th className="pb-2.5">Bond (USDC)</th>
-                  <th className="pb-2.5">Sharpe</th>
-                  <th className="pb-2.5">Max DD</th>
-                  <th className="pb-2.5">Compliance</th>
-                  <th className="pb-2.5 text-right">Thao tác kiểm định</th>
+                  <th className="px-2.5 pb-2.5">Agent / ERC-8004 ID</th>
+                  <th className="px-2.5 pb-2.5">Trạng thái</th>
+                  <th className="px-2.5 pb-2.5 whitespace-nowrap">Bond (USDC)</th>
+                  <th className="px-3 pb-2.5 whitespace-nowrap">Sharpe</th>
+                  <th className="px-3 pb-2.5 whitespace-nowrap">Max DD</th>
+                  <th className="px-2.5 pb-2.5 whitespace-nowrap">Compliance</th>
+                  <th className="px-2.5 pb-2.5 text-right whitespace-nowrap">Thao tác kiểm định</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
@@ -264,13 +264,13 @@ export const LaunchpadPage: React.FC = () => {
                         isSelected ? 'bg-slate-900/90' : 'hover:bg-slate-900/40'
                       }`}
                     >
-                      <td className="py-3.5 pr-2">
+                      <td className="px-2.5 py-3.5">
                         <div className="font-bold text-white">{ag.name}</div>
                         <div className="font-mono text-[10px] text-slate-400">
                           {ag.strategyType} • {shortenHex(ag.erc8004Id, 8)}
                         </div>
                       </td>
-                      <td className="py-3.5 pr-2">
+                      <td className="px-2.5 py-3.5 whitespace-nowrap">
                         {ag.status === 'GRADUATED' ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-300 border border-emerald-500/40">
                             <Award className="h-3 w-3" /> GRADUATED
@@ -285,16 +285,16 @@ export const LaunchpadPage: React.FC = () => {
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 pr-2 font-mono font-semibold text-white">
+                      <td className="px-2.5 py-3.5 font-mono font-semibold text-white whitespace-nowrap">
                         ${formatTokenUnits(ag.bondUsdc, 6)}
                       </td>
-                      <td className="py-3.5 pr-2 font-mono font-bold text-emerald-400">
+                      <td className="px-3 py-3.5 font-mono font-bold text-emerald-400 whitespace-nowrap">
                         {ag.metrics.sharpeRatio.toFixed(2)}
                       </td>
-                      <td className="py-3.5 pr-2 font-mono text-slate-300">
+                      <td className="px-3 py-3.5 font-mono text-slate-300 whitespace-nowrap">
                         {(ag.metrics.maxDrawdownBps / 100).toFixed(2)}%
                       </td>
-                      <td className="py-3.5 pr-2 font-mono">
+                      <td className="px-2.5 py-3.5 font-mono whitespace-nowrap">
                         <span
                           className={
                             ag.metrics.complianceRateBps === 10000
@@ -305,25 +305,25 @@ export const LaunchpadPage: React.FC = () => {
                           {(ag.metrics.complianceRateBps / 100).toFixed(0)}% ({ag.metrics.paperTradesCount} lệnh)
                         </span>
                       </td>
-                      <td className="py-3.5 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="inline-flex items-center gap-1.5">
+                      <td className="px-2.5 py-3.5 text-right whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <button
                             onClick={() => handlePaperTrade(ag.agentId, false)}
                             disabled={busy !== null || ag.status === 'SLASHED'}
                             title="Chạy phiên Paper Trade hợp lệ (Accelerated Clock)"
-                            className="inline-flex items-center gap-1 rounded bg-emerald-600/20 border border-emerald-500/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 hover:bg-emerald-600/30 disabled:opacity-40"
+                            className="inline-flex items-center gap-1 rounded bg-emerald-600/20 border border-emerald-500/40 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 whitespace-nowrap hover:bg-emerald-600/30 disabled:opacity-40"
                           >
-                            <Play className="h-3 w-3" />
-                            Paper Trade
+                            <Play className="h-3 w-3 shrink-0" />
+                            <span>Paper Trade</span>
                           </button>
                           <button
                             onClick={() => handlePaperTrade(ag.agentId, true)}
                             disabled={busy !== null || ag.status === 'SLASHED'}
                             title="Giả lập vi phạm PolicyModule -> Cắt phạt Bond (Slash)"
-                            className="inline-flex items-center gap-1 rounded bg-red-600/20 border border-red-500/40 px-2.5 py-1 text-[11px] font-semibold text-red-300 hover:bg-red-600/30 disabled:opacity-40"
+                            className="inline-flex items-center gap-1 rounded bg-red-600/20 border border-red-500/40 px-2.5 py-1 text-[11px] font-semibold text-red-300 whitespace-nowrap hover:bg-red-600/30 disabled:opacity-40"
                           >
-                            <ShieldAlert className="h-3 w-3" />
-                            Slash
+                            <ShieldAlert className="h-3 w-3 shrink-0" />
+                            <span>Slash</span>
                           </button>
                         </div>
                       </td>
@@ -343,7 +343,7 @@ export const LaunchpadPage: React.FC = () => {
             <Hash className="h-5 w-5 text-[#E84142]" />
             <div>
               <h2 className="text-base font-bold text-white">
-                Nhật Ký Kiểm Toán Proof-of-Action (`keccak256` Hash Log)
+                Nhật Ký Kiểm Toán Proof-of-Action (keccak256 Hash Log)
               </h2>
               <p className="text-xs text-slate-400">
                 Đang hiển thị lịch sử lệnh của Agent:{' '}
@@ -360,7 +360,7 @@ export const LaunchpadPage: React.FC = () => {
                 <th className="pb-2.5">Action ID / Timestamp</th>
                 <th className="pb-2.5">Cặp & Chiều</th>
                 <th className="pb-2.5">Notional / Giá</th>
-                <th className="pb-2.5">Proof-of-Action Hash (`keccak256`)</th>
+                <th className="pb-2.5">PROOF-OF-ACTION HASH (KECCAK256)</th>
                 <th className="pb-2.5">Tuân thủ Policy</th>
               </tr>
             </thead>

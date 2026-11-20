@@ -1,3 +1,5 @@
+import { createPublicClient, http, parseAbi } from 'viem';
+import { avalanche } from 'viem/chains';
 import type { PythPriceFeed } from '@repo/shared';
 
 export const PYTH_FEEDS = {
@@ -20,7 +22,12 @@ export const PYTH_FEEDS = {
 
 export type SupportedPythSymbol = keyof typeof PYTH_FEEDS;
 
-function normalizePythPriceTo8Decimals(rawPrice: string, expo: number): string {
+const AVALANCHE_PYTH_CONTRACT = '0x4305FB66699C3B2702D4d05CF36551390A4c69C6' as const;
+const PYTH_ORACLE_ABI = parseAbi([
+  'function getPriceUnsafe(bytes32 id) view returns ((int64 price, uint64 conf, int32 expo, uint256 publishTime))'
+]);
+
+function normalizePythPriceTo8Decimals(rawPrice: string | bigint, expo: number): string {
   const value = BigInt(rawPrice);
   const shift = 8 + expo;
   if (shift >= 0) {
@@ -44,9 +51,50 @@ export function getFallbackPythFeeds(symbols?: SupportedPythSymbol[]): PythPrice
   });
 }
 
+async function fetchPythOnchainAvalancheFeeds(
+  list: SupportedPythSymbol[],
+  timeoutMs: number
+): Promise<PythPriceFeed[] | null> {
+  try {
+    const client = createPublicClient({
+      chain: avalanche,
+      transport: http('https://api.avax.network/ext/bc/C/rpc', { timeout: timeoutMs })
+    });
+
+    const results = await Promise.all(
+      list.map(async (sym): Promise<PythPriceFeed | null> => {
+        const cfg = PYTH_FEEDS[sym];
+        const data = await client.readContract({
+          address: AVALANCHE_PYTH_CONTRACT,
+          abi: PYTH_ORACLE_ABI,
+          functionName: 'getPriceUnsafe',
+          args: [cfg.feedId]
+        });
+        const scaled = normalizePythPriceTo8Decimals(data.price, Number(data.expo));
+        if (BigInt(scaled) <= 0n) return null;
+        return {
+          symbol: cfg.symbol,
+          feedId: cfg.feedId,
+          priceUsd: scaled,
+          publishTime: Number(data.publishTime),
+          source: 'pyth-hermes'
+        };
+      })
+    );
+
+    const valid = results.filter((r): r is PythPriceFeed => r !== null);
+    if (valid.length === list.length) {
+      return valid;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchPythPriceFeeds(
   symbols?: SupportedPythSymbol[],
-  timeoutMs = 4000
+  timeoutMs = 8000
 ): Promise<PythPriceFeed[]> {
   const list = symbols && symbols.length > 0 ? symbols : (Object.keys(PYTH_FEEDS) as SupportedPythSymbol[]);
   const queryParams = list.map(sym => `ids[]=${encodeURIComponent(PYTH_FEEDS[sym].feedId)}`).join('&');
@@ -56,57 +104,71 @@ export async function fetchPythPriceFeeds(
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (process.env.PYTH_API_KEY) {
+      headers.Authorization = `Bearer ${process.env.PYTH_API_KEY}`;
+    }
+
     const response = await fetch(url, {
       method: 'GET',
-      headers: { Accept: 'application/json' },
+      headers,
       signal: controller.signal
     });
-    if (!response.ok) {
-      return getFallbackPythFeeds(list);
-    }
 
-    const payload = (await response.json()) as {
-      parsed?: Array<{
-        id: string;
-        price?: { price: string; expo: number; publish_time: number };
-      }>;
-    };
-
-    if (!Array.isArray(payload.parsed) || payload.parsed.length === 0) {
-      return getFallbackPythFeeds(list);
-    }
-
-    const byId = new Map<string, { price: string; expo: number; publish_time: number }>();
-    for (const entry of payload.parsed) {
-      if (entry.id && entry.price) {
-        const cleanId = entry.id.startsWith('0x') ? entry.id.toLowerCase() : `0x${entry.id.toLowerCase()}`;
-        byId.set(cleanId, entry.price);
-      }
-    }
-
-    const now = Math.floor(Date.now() / 1000);
-    return list.map(sym => {
-      const cfg = PYTH_FEEDS[sym];
-      const match = byId.get(cfg.feedId.toLowerCase());
-      if (!match) {
-        return {
-          symbol: cfg.symbol,
-          feedId: cfg.feedId,
-          priceUsd: cfg.fallbackPriceUsd,
-          publishTime: now,
-          source: 'fallback'
-        };
-      }
-      const scaled = normalizePythPriceTo8Decimals(match.price, match.expo);
-      return {
-        symbol: cfg.symbol,
-        feedId: cfg.feedId,
-        priceUsd: BigInt(scaled) > 0n ? scaled : cfg.fallbackPriceUsd,
-        publishTime: match.publish_time || now,
-        source: 'pyth-hermes'
+    if (response.ok) {
+      const payload = (await response.json()) as {
+        parsed?: Array<{
+          id: string;
+          price?: { price: string; expo: number; publish_time: number };
+        }>;
       };
-    });
+
+      if (Array.isArray(payload.parsed) && payload.parsed.length > 0) {
+        const byId = new Map<string, { price: string; expo: number; publish_time: number }>();
+        for (const entry of payload.parsed) {
+          if (entry.id && entry.price) {
+            const cleanId = entry.id.startsWith('0x') ? entry.id.toLowerCase() : `0x${entry.id.toLowerCase()}`;
+            byId.set(cleanId, entry.price);
+          }
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        return list.map(sym => {
+          const cfg = PYTH_FEEDS[sym];
+          const match = byId.get(cfg.feedId.toLowerCase());
+          if (!match) {
+            return {
+              symbol: cfg.symbol,
+              feedId: cfg.feedId,
+              priceUsd: cfg.fallbackPriceUsd,
+              publishTime: now,
+              source: 'fallback'
+            };
+          }
+          const scaled = normalizePythPriceTo8Decimals(match.price, match.expo);
+          return {
+            symbol: cfg.symbol,
+            feedId: cfg.feedId,
+            priceUsd: BigInt(scaled) > 0n ? scaled : cfg.fallbackPriceUsd,
+            publishTime: match.publish_time || now,
+            source: 'pyth-hermes'
+          };
+        });
+      }
+    }
+
+    // If Hermes REST requires a subscription token (HTTP 401), query Pyth Oracle contract directly on Avalanche C-Chain
+    const onchainFeeds = await fetchPythOnchainAvalancheFeeds(list, timeoutMs);
+    if (onchainFeeds) {
+      return onchainFeeds;
+    }
+
+    return getFallbackPythFeeds(list);
   } catch {
+    const onchainFeeds = await fetchPythOnchainAvalancheFeeds(list, timeoutMs);
+    if (onchainFeeds) {
+      return onchainFeeds;
+    }
     return getFallbackPythFeeds(list);
   } finally {
     clearTimeout(timer);

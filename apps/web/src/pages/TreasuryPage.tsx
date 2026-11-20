@@ -519,40 +519,96 @@ export const TreasuryPage: React.FC<TreasuryPageProps> = ({
                   Các bước lệnh dự kiến ({previewPlan.steps.length} bước):
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {previewPlan.steps.map(step => (
-                    <div
-                      key={step.stepIndex}
-                      className="rounded-lg border border-slate-800 bg-slate-900/60 p-3.5 text-xs space-y-1.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-bold text-white">
-                          Bước #{step.stepIndex + 1}: {step.action}
-                        </span>
-                        <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-emerald-300">
-                          ~{formatUsd8(step.estimatedValueUsd)}
-                        </span>
+                  {previewPlan.steps.map(step => {
+                    const resolveTokenMeta = (addr: string, isVault = false) => {
+                      const pos = portfolio.positions.find(
+                        p =>
+                          (isVault && p.vaultAddress?.toLowerCase() === addr.toLowerCase()) ||
+                          (!isVault && p.tokenAddress.toLowerCase() === addr.toLowerCase())
+                      );
+                      const is18 = addr.toLowerCase().endsWith('0002');
+                      return {
+                        symbol: isVault ? 'vUSDC' : pos?.symbol?.replace(' (MockVault4626)', '') ?? (is18 ? 'sAVAX' : 'USDC'),
+                        decimals: pos?.decimals ?? (is18 ? 18 : 6)
+                      };
+                    };
+
+                    return (
+                      <div
+                        key={step.stepIndex}
+                        className="rounded-lg border border-slate-800 bg-slate-900/60 p-3.5 text-xs space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-white">
+                            Bước #{step.stepIndex + 1}: {step.action}
+                          </span>
+                          <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-emerald-300">
+                            ~{formatUsd8(step.estimatedValueUsd)}
+                          </span>
+                        </div>
+                        <div className="font-mono text-[11px] text-slate-400">
+                          Target: {shortenHex(step.targetContract, 6)}
+                        </div>
+                        {step.action === 'SWAP_EXACT_IN' ? (() => {
+                          const metaIn = resolveTokenMeta(step.tokenIn);
+                          const metaOut = resolveTokenMeta(step.tokenOut);
+                          return (
+                            <div className="space-y-0.5">
+                              <div className="font-semibold text-slate-200">
+                                <span className="text-amber-300">
+                                  {formatTokenUnits(step.amountIn, metaIn.decimals, 2)} {metaIn.symbol}
+                                </span>{' '}
+                                → Min{' '}
+                                <span className="text-emerald-300">
+                                  {formatTokenUnits(step.minAmountOut, metaOut.decimals, 2)} {metaOut.symbol}
+                                </span>
+                              </div>
+                              <div className="font-mono text-[10px] text-slate-500">
+                                Raw: {step.amountIn} → min {step.minAmountOut}
+                              </div>
+                            </div>
+                          );
+                        })() : step.action === 'VAULT_DEPOSIT' ? (() => {
+                          const metaIn = resolveTokenMeta(step.tokenIn);
+                          return (
+                            <div className="space-y-0.5">
+                              <div className="font-semibold text-slate-200">
+                                <span className="text-amber-300">
+                                  {formatTokenUnits(step.assets, metaIn.decimals, 2)} {metaIn.symbol}
+                                </span>{' '}
+                                → Min{' '}
+                                <span className="text-emerald-300">
+                                  {formatTokenUnits(step.minShares, metaIn.decimals, 2)} vUSDC
+                                </span>
+                              </div>
+                              <div className="font-mono text-[10px] text-slate-500">
+                                Raw: {step.assets} assets → min {step.minShares} shares
+                              </div>
+                            </div>
+                          );
+                        })() : (() => {
+                          const metaOut = resolveTokenMeta(step.tokenOut);
+                          return (
+                            <div className="space-y-0.5">
+                              <div className="font-semibold text-slate-200">
+                                Rút{' '}
+                                <span className="text-amber-300">
+                                  {formatTokenUnits(step.assets, metaOut.decimals, 2)} {metaOut.symbol}
+                                </span>{' '}
+                                (Max{' '}
+                                <span className="text-emerald-300">
+                                  {formatTokenUnits(step.maxShares, metaOut.decimals, 2)} vUSDC
+                                </span>)
+                              </div>
+                              <div className="font-mono text-[10px] text-slate-500">
+                                Raw: {step.assets} assets (max {step.maxShares} shares)
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
-                      <div className="font-mono text-[11px] text-slate-400">
-                        Target: {shortenHex(step.targetContract, 6)}
-                      </div>
-                      {step.action === 'SWAP_EXACT_IN' ? (
-                        <div className="text-slate-300">
-                          AmountIn: <code className="text-amber-300">{step.amountIn}</code> → MinOut:{' '}
-                          <code className="text-emerald-300">{step.minAmountOut}</code>
-                        </div>
-                      ) : step.action === 'VAULT_DEPOSIT' ? (
-                        <div className="text-slate-300">
-                          Assets nạp: <code className="text-amber-300">{step.assets}</code> → MinShares:{' '}
-                          <code className="text-emerald-300">{step.minShares}</code>
-                        </div>
-                      ) : (
-                        <div className="text-slate-300">
-                          Assets rút: <code className="text-amber-300">{step.assets}</code> → MaxShares:{' '}
-                          <code className="text-emerald-300">{step.maxShares}</code>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

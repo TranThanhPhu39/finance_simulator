@@ -430,7 +430,7 @@ export class TreasuryApiService {
 
   // Topic 16 Launchpad endpoints
   public async getLaunchpadPrices(): Promise<PythPriceFeed[]> {
-    return await fetchPythPriceFeeds(['AAPL/USD', 'AVAX/USD', 'USDC/USD'], 3500);
+    return await fetchPythPriceFeeds(['AAPL/USD', 'AVAX/USD', 'USDC/USD'], 8000);
   }
 
   public listLaunchpadAgents(): RegisteredAgent[] {

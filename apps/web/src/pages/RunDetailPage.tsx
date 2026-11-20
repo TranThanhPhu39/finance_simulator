@@ -10,7 +10,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import type { RunResult } from '@repo/shared';
-import { apiClient, formatUsd8, shortenHex } from '../api/client';
+import { apiClient, formatTokenUnits, formatUsd8, shortenHex } from '../api/client';
 
 interface RunDetailPageProps {
   runs: RunResult[];
@@ -243,21 +243,26 @@ export const RunDetailPage: React.FC<RunDetailPageProps> = ({
             {/* Balance Diffs Table */}
             <div>
               <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-                3. Đối Chiếu Số Dư Trước & Sau (`BalanceDiff`)
+                3. ĐỐI CHIẾU SỐ DƯ TRƯỚC & SAU (BALANCE DIFF)
               </h3>
               <div className="mt-2 overflow-x-auto rounded-lg border border-slate-800">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-900/90 uppercase text-slate-400">
                     <tr>
                       <th className="px-3.5 py-2.5">Tài sản</th>
-                      <th className="px-3.5 py-2.5">Trước (Raw / USD)</th>
-                      <th className="px-3.5 py-2.5">Sau (Raw / USD)</th>
+                      <th className="px-3.5 py-2.5">Trước (Số lượng / USD)</th>
+                      <th className="px-3.5 py-2.5">Sau (Số lượng / USD)</th>
                       <th className="px-3.5 py-2.5">Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800">
                     {activeRun.balanceDiffs.map((b, idx) => {
                       const unchanged = b.beforeRaw === b.afterRaw;
+                      const decimals =
+                        b.symbol === 'A' || b.symbol === 'sAVAX' || b.tokenAddress.toLowerCase().endsWith('0002')
+                          ? 18
+                          : 6;
+                      const cleanSym = b.symbol.replace(' (MockVault4626)', '');
                       return (
                         <tr key={idx} className="hover:bg-slate-900/40">
                           <td className="px-3.5 py-2.5">
@@ -267,10 +272,22 @@ export const RunDetailPage: React.FC<RunDetailPageProps> = ({
                             </div>
                           </td>
                           <td className="px-3.5 py-2.5 font-mono text-slate-300">
-                            {b.beforeRaw} <span className="text-slate-500">({formatUsd8(b.beforeUsd)})</span>
+                            <div>
+                              <span className="font-semibold text-white">
+                                {formatTokenUnits(b.beforeRaw, decimals, 2)} {cleanSym}
+                              </span>{' '}
+                              <span className="text-slate-400">({formatUsd8(b.beforeUsd)})</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500">Raw: {b.beforeRaw}</div>
                           </td>
                           <td className="px-3.5 py-2.5 font-mono text-white">
-                            {b.afterRaw} <span className="text-emerald-400">({formatUsd8(b.afterUsd)})</span>
+                            <div>
+                              <span className="font-semibold text-white">
+                                {formatTokenUnits(b.afterRaw, decimals, 2)} {cleanSym}
+                              </span>{' '}
+                              <span className="text-emerald-400">({formatUsd8(b.afterUsd)})</span>
+                            </div>
+                            <div className="text-[10px] text-slate-500">Raw: {b.afterRaw}</div>
                           </td>
                           <td className="px-3.5 py-2.5">
                             <span

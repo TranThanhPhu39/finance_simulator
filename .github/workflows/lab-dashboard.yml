@@ -1,9 +1,29 @@
 name: Lab API and dashboard
 on:
   push:
-    paths: ['apps/**','packages/**','scripts/local-prepare.mjs','package.json','pnpm-lock.yaml','tsconfig.json','playwright.config.ts','.github/workflows/lab-dashboard.yml']
+    paths:
+      [
+        "apps/**",
+        "packages/**",
+        "scripts/local-prepare.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "playwright.config.ts",
+        ".github/workflows/lab-dashboard.yml",
+      ]
   pull_request:
-    paths: ['apps/**','packages/**','scripts/local-prepare.mjs','package.json','pnpm-lock.yaml','tsconfig.json','playwright.config.ts','.github/workflows/lab-dashboard.yml']
+    paths:
+      [
+        "apps/**",
+        "packages/**",
+        "scripts/local-prepare.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "playwright.config.ts",
+        ".github/workflows/lab-dashboard.yml",
+      ]
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,18 +35,30 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
       - uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
-      - name: Install and verify workspace
+      - name: Install workspace
         run: |
           npm install --global pnpm@10.11.0
           pnpm install --frozen-lockfile
-          pnpm typecheck
-          pnpm test
-          pnpm build
-          pnpm exec playwright install --with-deps chromium
+      - name: Check types
+        run: pnpm typecheck
+      - name: Run unit tests
+        run: pnpm test
+      - name: Build dashboard
+        shell: bash
+        run: |
+          mkdir -p .runtime
+          if ! pnpm build > .runtime/build.log 2>&1; then
+            cat .runtime/build.log
+            while IFS= read -r line; do printf '::error::%s\n' "$line"; done < .runtime/build.log
+            exit 1
+          fi
+          cat .runtime/build.log
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
       - name: Run lab suite API restart and browser flows
         shell: bash
         run: |

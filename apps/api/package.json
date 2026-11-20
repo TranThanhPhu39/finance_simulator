@@ -1,5 +1,15 @@
 {
-  "name": "@repo/api", "version": "0.1.0", "private": true,
-  "scripts": { "dev": "tsx src/main.ts" },
-  "dependencies": { "@repo/shared": "workspace:*", "@repo/lab": "workspace:*", "@repo/agent": "workspace:*", "@repo/chain-client": "workspace:*", "viem": "^2.13.0" }
+  "name": "@repo/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "@repo/lab": "workspace:*",
+    "@repo/agent": "workspace:*",
+    "@repo/chain-client": "workspace:*",
+    "viem": "^2.13.0"
+  }
 }

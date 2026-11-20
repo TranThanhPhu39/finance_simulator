@@ -58,7 +58,14 @@ jobs:
           fi
           cat .runtime/build.log
       - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        shell: bash
+        run: |
+          if ! pnpm exec playwright install --with-deps chromium > .runtime/browser-install.log 2>&1; then
+            cat .runtime/browser-install.log
+            while IFS= read -r line; do printf '::error::%s\n' "$line"; done < .runtime/browser-install.log
+            exit 1
+          fi
+          cat .runtime/browser-install.log
       - name: Run lab suite API restart and browser flows
         shell: bash
         run: |

@@ -29,7 +29,8 @@ permissions:
   contents: read
 jobs:
   full-local-stack:
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 supports this fixed browser/dependency image.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -71,7 +72,12 @@ jobs:
         run: |
           set -euo pipefail
           pnpm local:prepare
-          pnpm lab:integration
+          if ! pnpm lab:integration > .runtime/lab-integration.log 2>&1; then
+            cat .runtime/lab-integration.log
+            tail -n 30 .runtime/lab-integration.log | while IFS= read -r line; do printf '::error::%s\n' "$line"; done
+            exit 1
+          fi
+          cat .runtime/lab-integration.log
           pnpm local:prepare
           pnpm api:dev > .runtime/api.log 2>&1 &
           task_api_pid=$!
@@ -82,7 +88,12 @@ jobs:
             if curl -fsS http://127.0.0.1:8787/api/health && curl -fsS http://127.0.0.1:5173 >/dev/null; then break; fi
             sleep 1
           done
-          pnpm exec playwright test
+          if ! pnpm exec playwright test > .runtime/browser-test.log 2>&1; then
+            cat .runtime/browser-test.log
+            tail -n 40 .runtime/browser-test.log | while IFS= read -r line; do printf '::error::%s\n' "$line"; done
+            exit 1
+          fi
+          cat .runtime/browser-test.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -91,6 +102,10 @@ jobs:
             .runtime/lab-suite.json
             .runtime/screenshots/
             .runtime/playwright-results/
+            .runtime/*-install.log
+            .runtime/*-test.log
+            .runtime/lab-integration.log
+            .runtime/build.log
             .runtime/api.log
             .runtime/web.log
           if-no-files-found: ignore

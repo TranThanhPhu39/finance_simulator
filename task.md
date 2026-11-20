@@ -28,7 +28,7 @@ Không dùng PASS/FAIL của scenario làm trạng thái task. Không tự ghi t
 | --- | --- | --- | --- | --- | --- | --- |
 | Phú — Người 1 | Contracts và bảo mật | SPE-01, SPE-02, CON-01 đến CON-07: REVIEW; ENV-03: BLOCKED | Safe/module + live agent integration; 65 Solidity + 22 TS tests PASS | Fuji chưa có ví testnet được cấu hình | Tiến/Hoàng review nhánh feat/phu-policy-module; cấu hình ví thử nghiệm cho Fuji | 2026-11-14 |
 | Tiến — Người 2 | Testkit, chain client, agent | CHN-01, AGT-01, AGT-02: REVIEW cùng Phú | Planner cap swap-only, typed vault requests, decoder và reader/executor đã chạy local | Cần review chiến lược và durable dedup khi ghép backend | Xem docs/interfaces.md và docs/contract-handoff.md | 2026-11-14 |
-| Hoàng — Người 3 | Lab, API, web | LAB/API/WEB/REP: REVIEW (local) | 17 scenario PASS, SQLite/queue/export/owner signing, dashboard 3 màn hình; 30 TS tests và 2 browser flows PASS | Fuji live chưa có deployment/signer; chỉ local | Nhóm review feat/hoang-lab-dashboard; kiểm chứng CI và tiếp tục Fuji khi có ví testnet | 2026-11-20 |
+| Hoàng — Người 3 | Lab, API, web | LAB/API/WEB/REP: REVIEW (local) | 17 scenario PASS, SQLite/queue/export/owner signing, dashboard 3 màn hình; 30 TS tests và 2 browser flows PASS | Fuji live chưa có deployment/signer; chỉ local | Nhóm review feat/hoang-lab-dashboard; CI đã PASS, tiếp tục Fuji khi có ví testnet | 2026-11-20 |
 
 Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Đã có cả 3 phần và tích hợp local. REVIEW nghĩa là đã có đầu ra/bằng chứng để nhóm kiểm tra, chưa phải được thành viên khác duyệt hay đã triển khai Fuji.
 
@@ -37,9 +37,9 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Đã c
 | Mốc | Đạt khi | Status |
 | --- | --- | --- |
 | M1 — Đặc tả và nền tảng | Có policy spec, schema, fixture, scenario catalog và toolchain | IN_PROGRESS |
-| M2 — Luồng xuyên suốt | Web → API → agent → module → swap local → số dư mới | TODO |
-| M3 — Kiểm soát quyền | Vi phạm bị chặn; có assertions về tài sản/quyền/cap | TODO |
-| M4 — Phòng kiểm thử | Chạy bộ scenarios, lưu lịch sử, mở lại và xuất báo cáo | TODO |
+| M2 — Luồng xuyên suốt | Web → API → agent → module → swap local → số dư mới | REVIEW |
+| M3 — Kiểm soát quyền | Vi phạm bị chặn; có assertions về tài sản/quyền/cap | REVIEW |
+| M4 — Phòng kiểm thử | Chạy bộ scenarios, lưu lịch sử, mở lại và xuất báo cáo | REVIEW |
 | M5 — Fuji | Demo luồng được hỗ trợ trên Avalanche Fuji, có bằng chứng thật | TODO |
 | M6 — Bàn giao | Người khác cài lại, chạy demo theo tài liệu và quay video | TODO |
 
@@ -54,7 +54,7 @@ Tên lấy từ file đính kèm; phạm vi theo tin nhắn mới nhất. Đã c
 | SPE-01 | Viết docs/policy-spec.md: session, cap/scope/biên 24h, whitelist, recipient, giá/scale, minOut và approve | Phú + Tiến | SET-01 | REVIEW |
 | SPE-02 | Viết docs/threat-model.md: trust boundary, lộ session key, caller sai, đường vòng Safe/module, router xấu, quản trị | Phú | SPE-01 | REVIEW |
 | SPE-03 | Chốt schema ở shared, error codes và docs/interfaces.md; có fixture hợp lệ cho policy/snapshot/plan/scenario/result | Cả nhóm | SPE-01 | IN_PROGRESS |
-| SPE-04 | Chốt 15 scenarios bên dưới, khả năng local/Fuji và docs/acceptance.md | Hoàng + Phú | SPE-01, SPE-03 | REVIEW |
+| SPE-04 | Chốt 17 scenarios bên dưới, khả năng local/Fuji và docs/acceptance.md | Hoàng + Phú | SPE-01, SPE-03 | REVIEW |
 | SPE-05 | Chốt D-09 (nguồn lãi, interface vault, mock hay fork mainnet) và D-10 (phạm vi MVP); viết docs/yield-sources.md có nguồn kiểm chứng cho pitch | Cả nhóm | SET-01 | TODO |
 
 ### Người 1 — Phú: hợp đồng và bảo mật
@@ -145,7 +145,7 @@ Thêm dòng mới lên đầu. Ngày giờ dùng Asia/Saigon. Link file ghi theo
 
 | Ngày giờ | Người cập nhật | Task | Đã làm / file hoặc commit | Kiểm chứng | Vướng mắc / bàn giao / bước tiếp |
 | --- | --- | --- | --- | --- | --- |
-| 2026-11-20 | Hoàng qua Codex | LAB-01/02/03, API-01/02, WEB-01/02/03, REP-01, INT-01, QUA-01, DOC-01 | Nhánh feat/hoang-lab-dashboard: catalog/runner/evidence, Node24 API/SQLite migrations/worker/leases/idempotency/restart quarantine, React3 màn hình, owner wallet flow, JSON/CSV, local:prepare, demo/API/acceptance docs | 17/17 local scenarios PASS, có preflight custom error + mined receipt + before/after + restore; API integration verify ký owner/validation/export/SQLite restart; typecheck + build PASS; 30 TS unit tests PASS; 2 Playwright flows desktop/mobile/sai mạng/hủy ký PASS, ảnh đã xem | Chờ CI và nhóm review. Local-only, chưa public host/Fuji; API giữ lease khi gửi không rõ kết quả; xem docs/demo-guide.md để tái hiện |
+| 2026-11-20 | Hoàng qua Codex | LAB-01/02/03, API-01/02, WEB-01/02/03, REP-01, INT-01, QUA-01, DOC-01 | Nhánh feat/hoang-lab-dashboard: catalog/runner/evidence, Node24 API/SQLite migrations/worker/leases/idempotency/restart quarantine, React3 màn hình, owner wallet flow, JSON/CSV, local:prepare, demo/API/acceptance docs | 17/17 local scenarios PASS, có preflight custom error + mined receipt + before/after + restore; API integration verify ký owner/validation/export/SQLite restart; typecheck + build PASS; 30 TS unit tests PASS; 2 Playwright flows desktop/mobile/sai mạng/hủy ký PASS, ảnh đã xem | CI [44770506335](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44770506335) SUCCESS tại bf734e4; hợp đồng/agent [44769952765](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44769952765) SUCCESS tại 08106b4 (sau đó chỉ sửa workflow lab). Chờ nhóm review. Local-only, chưa public host/Fuji; API giữ lease khi gửi không rõ kết quả; xem docs/demo-guide.md để tái hiện |
 | 2026-11-14 | Phú qua Codex | CON-06/07, CHN-01, AGT-01/02, QUA-01 (phần hợp đồng/agent) | Commit code f047624 đã push nhánh feat/phu-policy-module; cập nhật tài liệu kết quả CI | GitHub Actions run 43613122263: contracts SUCCESS và agent-integration SUCCESS trên Ubuntu; đủ format/build/65 Solidity tests/ABI/typecheck/22 TS tests/live signed agent; có artifact local-agent-evidence | Local integration đã được tái hiện trên CI; chờ review của nhóm, lab/API/UI chưa xong; Fuji còn BLK-002 |
 | 2026-11-14 | Phú qua Codex | CON-06/07, SPE-03, CHN-01, AGT-01/02, ENV-03 | Bổ sung tests disabled module/zero cap/vault asset/ring wrap; đồng bộ typed schema v0.2, cap swap-only, cash/minOut, block reader, signed executor, ABI decoder; fixture chung; script Fuji và CI live agent; nhánh feat/phu-policy-module | 65 Solidity tests PASS; typecheck + 22 TS tests PASS; live agent swap/deposit/withdraw, duplicate request và revoke PASS; RPC Fuji trả 43113, script build thành công | Mapping BLK-001 đã xử lý; cần nhóm review; Fuji chưa broadcast vì thiếu ví testnet (BLK-002); backend cần persist/lock signer |
 | 2026-11-14 | Phú qua Codex | SPE-01, SPE-02, CON-01 đến CON-07 | PolicyModule + RollingSpend, Safe thật v1.4.1, ERC-4626 controls, tests, script local, ABI, spec/threat model/handoff; ghim OZ v5.2.0 thay remapping 5.7 cần Osaka; thêm CI hợp đồng | forge test -vv: 61 PASS/0 FAIL; fuzz 256/test, invariant 64x32/test; local deploy 19 receipt và smoke 7 tx PASS với đúng custom error + số dư/shares/cap/allowance; format và ABI export PASS; docs/contract-validation.md | REVIEW: Tiến đồng bộ cap swap-only, assets/maxShares/deadline và error decode; Hoàng làm runner; chưa kiểm chứng CI GitHub/Fuji |

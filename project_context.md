@@ -1,6 +1,6 @@
 # Treasury Agent Lab — Bối cảnh dự án
 
-Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Cập nhật 2026-11-20: đã triển khai local cả hợp đồng, agent và lab/API/dashboard. Lab 17/17 scenarios PASS; SQLite/queue/owner signing/exports/restart được kiểm tra; browser desktop/mobile và sai mạng/hủy ký PASS. Fuji vẫn thiếu ví thử nghiệm/deployment để xác minh. Cả ba phần đang chờ nhóm review, không đồng nghĩa hoàn thành bản demo Fuji.
+Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Cập nhật 2026-11-20: đã triển khai local cả hợp đồng, agent và lab/API/dashboard. Lab 17/17 scenarios PASS; SQLite/queue/owner signing/exports/restart được kiểm tra; browser desktop/mobile và sai mạng/hủy ký PASS. CI Ubuntu đã tái hiện thành công (xem [nghiệm thu](docs/acceptance.md)). Fuji vẫn thiếu ví thử nghiệm/deployment để xác minh. Cả ba phần đang chờ nhóm review, không đồng nghĩa hoàn thành bản demo Fuji.
 
 Cập nhật 2026-11-11 (đề xuất của Hoàng, chờ nhóm duyệt): định hướng lại thành **AI quản lý quỹ sinh lời trên Avalanche**. Agent phân bổ quỹ vào các nguồn lãi (stablecoin cho vay, sAVAX, trái phiếu token hóa) thay vì chỉ đổi qua lại token thử nghiệm. Kiến trúc policy/lab giữ nguyên; thêm thao tác gửi/rút vault và thu gọn phạm vi MVP. Xem mục 1, 2, 3, 3a, D-09, D-10.
 

@@ -1,0 +1,81 @@
+{
+  "runId": "run_sample_fail_sc09",
+  "scenarioId": "SC-09",
+  "scenarioName": "Người nhận là ví lạ (Invalid Recipient)",
+  "env": "local",
+  "executionMode": "SIMULATED_POLICY",
+  "status": "COMPLETED",
+  "verdict": "FAIL",
+  "startedAt": 1800000200,
+  "finishedAt": 1800000203,
+  "policySnapshot": {
+    "accountAddress": "0x1000000000000000000000000000000000000001",
+    "network": "local",
+    "sessionKey": "0x1000000000000000000000000000000000000002",
+    "sessionExpiresAt": 1800086400,
+    "isRevoked": false,
+    "cap24hUsd": "10000000000",
+    "remainingCapUsd": "10000000000",
+    "maxSlippageBps": 100,
+    "maxPriceAgeSec": 3600,
+    "whitelistedTokens": [
+      "0x2000000000000000000000000000000000000001",
+      "0x2000000000000000000000000000000000000002"
+    ],
+    "whitelistedVaults": [
+      "0x4000000000000000000000000000000000000001"
+    ],
+    "whitelistedRouters": [
+      "0x3000000000000000000000000000000000000001"
+    ],
+    "allowedRecipient": "0x1000000000000000000000000000000000000001",
+    "paused": false,
+    "capScope": "SWAP_INPUT_ONLY"
+  },
+  "steps": [
+    {
+      "stepIndex": 0,
+      "label": "Thử swap 50 USDC với recipient là ví lạ 0x9999...9999 (giả lập policy lỗi không chặn)",
+      "actionSource": "DIRECT_SESSION_CALL",
+      "status": "OK",
+      "errorCode": "OK",
+      "detail": "Giả lập kiểm thử: Lệnh tới recipient lạ không bị chặn như kỳ vọng."
+    }
+  ],
+  "assertions": [
+    {
+      "name": "Mã lỗi trả về khớp kỳ vọng (ERR_INVALID_RECIPIENT)",
+      "passed": false,
+      "expected": "ERR_INVALID_RECIPIENT",
+      "actual": "OK"
+    },
+    {
+      "name": "Số dư USDC của Safe không bị trừ khi recipient sai",
+      "passed": false,
+      "expected": "600000000",
+      "actual": "550000000"
+    }
+  ],
+  "balanceDiffs": [
+    {
+      "symbol": "USDC",
+      "tokenAddress": "0x2000000000000000000000000000000000000001",
+      "beforeRaw": "600000000",
+      "afterRaw": "550000000",
+      "beforeUsd": "60000000000",
+      "afterUsd": "55000000000"
+    },
+    {
+      "symbol": "A",
+      "tokenAddress": "0x2000000000000000000000000000000000000002",
+      "beforeRaw": "40000000000000000000",
+      "afterRaw": "40000000000000000000",
+      "beforeUsd": "40000000000",
+      "afterUsd": "40000000000"
+    }
+  ],
+  "spent24hBeforeUsd": "0",
+  "spent24hAfterUsd": "5000000000",
+  "explanation": "[Hệ thống] Dữ liệu mẫu minh họa kết luận FAIL: Tình huống SC-09 kỳ vọng lệnh bị chặn với ERR_INVALID_RECIPIENT nhưng kết quả quan sát trả về OK và làm giảm 50 USDC của Safe.",
+  "errorMessage": "Assertion failed: Expected ERR_INVALID_RECIPIENT but observed OK."
+}

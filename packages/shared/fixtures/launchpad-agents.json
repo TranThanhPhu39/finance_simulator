@@ -1,0 +1,50 @@
+[
+  {
+    "agentId": "agent_avax_yield_01",
+    "erc8004Id": "erc8004:avax:43113:0x1000000000000000000000000000000000000002",
+    "name": "Avalanche Treasury Yield Optimizer",
+    "strategyType": "ERC4626_CARRY_REBALANCE",
+    "bondUsdc": "500000000",
+    "status": "GRADUATED",
+    "createdAt": 1799900000,
+    "metrics": {
+      "sharpeRatio": 2.15,
+      "maxDrawdownBps": 180,
+      "complianceRateBps": 10000,
+      "totalReturnBps": 640,
+      "paperTradesCount": 24
+    }
+  },
+  {
+    "agentId": "agent_delta_neutral_02",
+    "erc8004Id": "erc8004:avax:43113:0x1000000000000000000000000000000000000003",
+    "name": "sAVAX-USDC Drift Sentinel",
+    "strategyType": "MEAN_REVERSION_500BPS",
+    "bondUsdc": "250000000",
+    "status": "INCUBATING",
+    "createdAt": 1799950000,
+    "metrics": {
+      "sharpeRatio": 1.42,
+      "maxDrawdownBps": 310,
+      "complianceRateBps": 10000,
+      "totalReturnBps": 290,
+      "paperTradesCount": 9
+    }
+  },
+  {
+    "agentId": "agent_rogue_alpha_03",
+    "erc8004Id": "erc8004:avax:43113:0x1000000000000000000000000000000000000004",
+    "name": "High-Frequency Breakout Bot",
+    "strategyType": "MOMENTUM_UNBOUNDED",
+    "bondUsdc": "0",
+    "status": "SLASHED",
+    "createdAt": 1799850000,
+    "metrics": {
+      "sharpeRatio": 0.45,
+      "maxDrawdownBps": 1420,
+      "complianceRateBps": 7500,
+      "totalReturnBps": -410,
+      "paperTradesCount": 12
+    }
+  }
+]

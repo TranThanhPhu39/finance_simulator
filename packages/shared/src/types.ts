@@ -117,3 +117,108 @@ export interface RebalancePlan {
   ruleReasoning: string;
   llmExplanation?: string;
 }
+
+export type ExecutionMode = 'ONCHAIN_RPC' | 'SIMULATED_POLICY';
+export type RunStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type RunVerdict = 'PASS' | 'FAIL' | 'ERROR' | 'UNSUPPORTED';
+export type ScenarioCategory = 'NORMAL' | 'CAP' | 'WHITELIST' | 'SESSION' | 'PRICE' | 'EXECUTION';
+
+export interface ScenarioDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: ScenarioCategory;
+  actionSource: ActionSource;
+  supportedEnvs: NetworkEnv[];
+  expectedErrorCode: ErrorCode;
+  stepsDescription: string[];
+}
+
+export interface BalanceDiff {
+  symbol: string;
+  tokenAddress: string;
+  beforeRaw: string;
+  afterRaw: string;
+  beforeUsd: string;
+  afterUsd: string;
+}
+
+export interface RunStepLog {
+  stepIndex: number;
+  label: string;
+  actionSource: ActionSource;
+  status: 'OK' | 'BLOCKED' | 'FAILED';
+  txHash?: string;
+  errorCode?: ErrorCode;
+  detail: string;
+}
+
+export interface AssertionResult {
+  name: string;
+  passed: boolean;
+  expected: string;
+  actual: string;
+}
+
+export interface RunResult {
+  runId: string;
+  scenarioId: string;
+  scenarioName: string;
+  env: NetworkEnv;
+  executionMode: ExecutionMode;
+  status: RunStatus;
+  verdict: RunVerdict;
+  startedAt: number;
+  finishedAt?: number;
+  policySnapshot: PolicyConfig;
+  steps: RunStepLog[];
+  assertions: AssertionResult[];
+  balanceDiffs: BalanceDiff[];
+  spent24hBeforeUsd: string;
+  spent24hAfterUsd: string;
+  explanation: string;
+  errorMessage?: string;
+}
+
+export interface PythPriceFeed {
+  symbol: string;
+  feedId: string;
+  priceUsd: string;
+  publishTime: number;
+  source: 'pyth-hermes' | 'fallback';
+}
+
+export type AgentLifecycleStatus = 'INCUBATING' | 'GRADUATED' | 'SLASHED';
+
+export interface AgentMetrics {
+  sharpeRatio: number;
+  maxDrawdownBps: number;
+  complianceRateBps: number;
+  totalReturnBps: number;
+  paperTradesCount: number;
+}
+
+export interface RegisteredAgent {
+  agentId: string;
+  erc8004Id: string;
+  name: string;
+  strategyType: string;
+  bondUsdc: string;
+  status: AgentLifecycleStatus;
+  createdAt: number;
+  metrics: AgentMetrics;
+}
+
+export interface PaperTradeAction {
+  actionId: string;
+  agentId: string;
+  timestamp: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  notionalUsd: string;
+  priceUsd: string;
+  proofHash: string;
+  compliant: boolean;
+  reason: string;
+}
+

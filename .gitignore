@@ -1,6 +1,7 @@
 # Dependencies and build output
 node_modules/
 dist/
+apps/web/dist/
 coverage/
 contracts/out/
 contracts/cache/
@@ -15,14 +16,19 @@ contracts/broadcast/
 *.key
 
 # Runtime data and local reports
+apps/api/data/
 *.db
 *.db-*
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite-*
 *.sqlite3
 *.sqlite3-*
 *.log
 .runtime/
+# Local addresses and receipts become stale after restarting Anvil.
+deployments/local.json
 
 # OS files
 .DS_Store

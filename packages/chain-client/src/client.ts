@@ -2,6 +2,7 @@ import { createPublicClient, createWalletClient, http, parseAbi, Address } from 
 import { privateKeyToAccount } from 'viem/accounts';
 import { avalancheFuji, foundry } from 'viem/chains';
 import { ErrorCode, NetworkEnv } from '@repo/shared';
+import { decodePolicyErrorDetails } from './errors';
 
 const ERC20_ABI = parseAbi([
   'function balanceOf(address owner) view returns (uint256)',
@@ -41,21 +42,21 @@ export class ChainClient {
     }
   }
 
-  async readTokenBalance(tokenAddress: Address, owner: Address): Promise<bigint> {
+  async readTokenBalance(tokenAddress: Address, owner: Address, blockNumber?: bigint): Promise<bigint> {
     return await this.publicClient.readContract({
       address: tokenAddress,
       abi: ERC20_ABI,
       functionName: 'balanceOf',
-      args: [owner]
+      args: [owner], blockNumber
     });
   }
 
-  async readVaultPosition(vaultAddress: Address, owner: Address): Promise<{ shares: bigint; assets: bigint }> {
+  async readVaultPosition(vaultAddress: Address, owner: Address, blockNumber?: bigint): Promise<{ shares: bigint; assets: bigint }> {
     const shares = await this.publicClient.readContract({
       address: vaultAddress,
       abi: VAULT_ABI,
       functionName: 'balanceOf',
-      args: [owner]
+      args: [owner], blockNumber
     });
 
     const assets = shares > 0n
@@ -63,35 +64,24 @@ export class ChainClient {
           address: vaultAddress,
           abi: VAULT_ABI,
           functionName: 'convertToAssets',
-          args: [shares]
+          args: [shares], blockNumber
         })
       : 0n;
 
     return { shares, assets };
   }
 
-  async readPriceUsd(oracleAddress: Address, tokenAddress: Address): Promise<{ price: bigint; updatedAt: bigint }> {
+  async readPriceUsd(oracleAddress: Address, tokenAddress: Address, blockNumber?: bigint): Promise<{ price: bigint; updatedAt: bigint }> {
     const [price, updatedAt] = await this.publicClient.readContract({
       address: oracleAddress,
       abi: ORACLE_ABI,
       functionName: 'getPrice',
-      args: [tokenAddress]
+      args: [tokenAddress], blockNumber
     });
     return { price, updatedAt };
   }
 
-  decodePolicyError(error: any): ErrorCode {
-    const msg = String(error?.message || error);
-    if (msg.includes('CapExceeded')) return ErrorCode.ERR_CAP_EXCEEDED;
-    if (msg.includes('TokenNotWhitelisted')) return ErrorCode.ERR_UNAUTHORIZED_TOKEN;
-    if (msg.includes('VaultNotWhitelisted')) return ErrorCode.ERR_UNAUTHORIZED_VAULT;
-    if (msg.includes('RouterNotWhitelisted')) return ErrorCode.ERR_UNAUTHORIZED_ROUTER;
-    if (msg.includes('InvalidRecipient')) return ErrorCode.ERR_INVALID_RECIPIENT;
-    if (msg.includes('SessionExpired')) return ErrorCode.ERR_SESSION_EXPIRED;
-    if (msg.includes('SessionRevoked')) return ErrorCode.ERR_SESSION_REVOKED;
-    if (msg.includes('SlippageExceeded') || msg.includes('Insufficient output')) return ErrorCode.ERR_SLIPPAGE_TOO_HIGH;
-    if (msg.includes('StalePrice')) return ErrorCode.ERR_STALE_PRICE;
-    if (msg.includes('Router: Simulated failure')) return ErrorCode.ERR_ROUTER_FAILED;
-    return ErrorCode.ERR_RPC_OR_ENV;
+  decodePolicyError(error: unknown): ErrorCode {
+    return decodePolicyErrorDetails(error).code;
   }
 }

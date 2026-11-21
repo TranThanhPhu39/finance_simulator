@@ -1,0 +1,23 @@
+{
+  "accountAddress": "0x1000000000000000000000000000000000000001",
+  "network": "local",
+  "sessionKey": "0x1000000000000000000000000000000000000002",
+  "sessionExpiresAt": 1800086400,
+  "isRevoked": false,
+  "cap24hUsd": "10000000000",
+  "remainingCapUsd": "10000000000",
+  "maxSlippageBps": 100,
+  "maxPriceAgeSec": 3600,
+  "whitelistedTokens": [
+    "0x2000000000000000000000000000000000000001",
+    "0x2000000000000000000000000000000000000002"
+  ],
+  "whitelistedVaults": [
+    "0x4000000000000000000000000000000000000001"
+  ],
+  "whitelistedRouters": [
+    "0x3000000000000000000000000000000000000001"
+  ],
+  "allowedRecipient": "0x1000000000000000000000000000000000000001",
+  "capScope": "SWAP_INPUT_ONLY"
+}

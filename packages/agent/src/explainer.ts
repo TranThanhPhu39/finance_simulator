@@ -5,9 +5,9 @@ export async function generateExplanation(
   plan: RebalancePlan,
   apiKey?: string
 ): Promise<string> {
-  const fallbackText = `[Hệ thống] ${plan.ruleReasoning} Tổng giá trị danh mục hiện tại: $${(
-    Number(snapshot.totalValueUsd) / 1e8
-  ).toFixed(2)}. Số bước thực thi: ${plan.steps.length}.`;
+  const cents = (BigInt(snapshot.totalValueUsd) + 500000n) / 1000000n;
+  const displayUsd = `${cents / 100n}.${(cents % 100n).toString().padStart(2, '0')}`;
+  const fallbackText = `[Hệ thống] ${plan.ruleReasoning} Tổng giá trị danh mục hiện tại: $${displayUsd}. Số bước dự kiến: ${plan.steps.length}.`;
 
   if (!apiKey || plan.status === 'NO_ACTION') {
     return fallbackText;
@@ -16,7 +16,7 @@ export async function generateExplanation(
   try {
     const prompt = `Bạn là trợ lý phân tích quỹ tài chính. Hãy giải thích ngắn gọn (tối đa 3 câu tiếng Việt) kế hoạch tái cân bằng sau đây dựa trên dữ liệu thực tế, không tự bịa số liệu:
     - Trạng thái: ${plan.status}
-    - Tái cân bằng một phần do cap: ${plan.isPartial}
+    - Tái cân bằng một phần theo giới hạn hiện tại: ${plan.isPartial}
     - Số bước lệnh: ${plan.steps.length}
     - Lý do hệ thống: ${plan.ruleReasoning}`;
 

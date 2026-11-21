@@ -13,6 +13,20 @@ export enum ErrorCode {
   ERR_SLIPPAGE_TOO_HIGH = 'ERR_SLIPPAGE_TOO_HIGH',
   ERR_STALE_PRICE = 'ERR_STALE_PRICE',
   ERR_ROUTER_FAILED = 'ERR_ROUTER_FAILED',
+  ERR_UNAUTHORIZED_SESSION = 'ERR_UNAUTHORIZED_SESSION',
+  ERR_PAUSED = 'ERR_PAUSED',
+  ERR_INVALID_PRICE = 'ERR_INVALID_PRICE',
+  ERR_DEADLINE_EXPIRED = 'ERR_DEADLINE_EXPIRED',
+  ERR_INVALID_AMOUNT = 'ERR_INVALID_AMOUNT',
+  ERR_HISTORY_FULL = 'ERR_HISTORY_FULL',
+  ERR_ONLY_SAFE = 'ERR_ONLY_SAFE',
+  ERR_INVALID_CONFIG = 'ERR_INVALID_CONFIG',
+  ERR_TOKEN_OPERATION = 'ERR_TOKEN_OPERATION',
+  ERR_BALANCE_CHANGE = 'ERR_BALANCE_CHANGE',
+  ERR_VAULT_ASSET_CHANGED = 'ERR_VAULT_ASSET_CHANGED',
+  ERR_EXECUTION_FAILED = 'ERR_EXECUTION_FAILED',
+  ERR_MODULE_DISABLED = 'ERR_MODULE_DISABLED',
+  ERR_TRANSACTION_REVERTED = 'ERR_TRANSACTION_REVERTED',
   ERR_RPC_OR_ENV = 'ERR_RPC_OR_ENV'
 }
 
@@ -30,6 +44,8 @@ export interface PolicyConfig {
   whitelistedVaults: string[];
   whitelistedRouters: string[];
   allowedRecipient: string;
+  paused?: boolean;
+  capScope: 'SWAP_INPUT_ONLY';
 }
 
 export interface AssetPosition {
@@ -45,6 +61,9 @@ export interface AssetPosition {
   isVaultPosition: boolean;
   vaultShares?: string;
   accruedYieldUsd?: string;
+  // convertToShares(assets), read at the snapshot block. Quote is indicative;
+  // executor rechecks the exact amount before submission and never weakens plan bounds.
+  vaultConversion?: { assets: string; shares: string };
 }
 
 export interface PortfolioSnapshot {
@@ -58,16 +77,36 @@ export interface PortfolioSnapshot {
 
 export type TradeActionType = 'SWAP_EXACT_IN' | 'VAULT_DEPOSIT' | 'VAULT_WITHDRAW';
 
-export interface TradeStep {
+interface TradeStepBase {
   stepIndex: number;
-  action: TradeActionType;
   targetContract: string;
+  estimatedValueUsd: string;
+  deadline: number;
+}
+
+export interface SwapStep extends TradeStepBase {
+  action: 'SWAP_EXACT_IN';
   tokenIn: string;
   tokenOut: string;
   amountIn: string;
   minAmountOut: string;
-  estimatedValueUsd: string;
 }
+
+export interface VaultDepositStep extends TradeStepBase {
+  action: 'VAULT_DEPOSIT';
+  tokenIn: string;
+  assets: string;       // raw underlying units, never shares
+  minShares: string;
+}
+
+export interface VaultWithdrawStep extends TradeStepBase {
+  action: 'VAULT_WITHDRAW';
+  tokenOut: string;     // underlying; withdraw does not implicitly swap to USDC
+  assets: string;
+  maxShares: string;
+}
+
+export type TradeStep = SwapStep | VaultDepositStep | VaultWithdrawStep;
 
 export interface RebalancePlan {
   planId: string;
@@ -78,3 +117,108 @@ export interface RebalancePlan {
   ruleReasoning: string;
   llmExplanation?: string;
 }
+
+export type ExecutionMode = 'ONCHAIN_RPC' | 'SIMULATED_POLICY';
+export type RunStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+export type RunVerdict = 'PASS' | 'FAIL' | 'ERROR' | 'UNSUPPORTED';
+export type ScenarioCategory = 'NORMAL' | 'CAP' | 'WHITELIST' | 'SESSION' | 'PRICE' | 'EXECUTION';
+
+export interface ScenarioDefinition {
+  id: string;
+  name: string;
+  description: string;
+  category: ScenarioCategory;
+  actionSource: ActionSource;
+  supportedEnvs: NetworkEnv[];
+  expectedErrorCode: ErrorCode;
+  stepsDescription: string[];
+}
+
+export interface BalanceDiff {
+  symbol: string;
+  tokenAddress: string;
+  beforeRaw: string;
+  afterRaw: string;
+  beforeUsd: string;
+  afterUsd: string;
+}
+
+export interface RunStepLog {
+  stepIndex: number;
+  label: string;
+  actionSource: ActionSource;
+  status: 'OK' | 'BLOCKED' | 'FAILED';
+  txHash?: string;
+  errorCode?: ErrorCode;
+  detail: string;
+}
+
+export interface AssertionResult {
+  name: string;
+  passed: boolean;
+  expected: string;
+  actual: string;
+}
+
+export interface RunResult {
+  runId: string;
+  scenarioId: string;
+  scenarioName: string;
+  env: NetworkEnv;
+  executionMode: ExecutionMode;
+  status: RunStatus;
+  verdict: RunVerdict;
+  startedAt: number;
+  finishedAt?: number;
+  policySnapshot: PolicyConfig;
+  steps: RunStepLog[];
+  assertions: AssertionResult[];
+  balanceDiffs: BalanceDiff[];
+  spent24hBeforeUsd: string;
+  spent24hAfterUsd: string;
+  explanation: string;
+  errorMessage?: string;
+}
+
+export interface PythPriceFeed {
+  symbol: string;
+  feedId: string;
+  priceUsd: string;
+  publishTime: number;
+  source: 'pyth-hermes' | 'fallback';
+}
+
+export type AgentLifecycleStatus = 'INCUBATING' | 'GRADUATED' | 'SLASHED';
+
+export interface AgentMetrics {
+  sharpeRatio: number;
+  maxDrawdownBps: number;
+  complianceRateBps: number;
+  totalReturnBps: number;
+  paperTradesCount: number;
+}
+
+export interface RegisteredAgent {
+  agentId: string;
+  erc8004Id: string;
+  name: string;
+  strategyType: string;
+  bondUsdc: string;
+  status: AgentLifecycleStatus;
+  createdAt: number;
+  metrics: AgentMetrics;
+}
+
+export interface PaperTradeAction {
+  actionId: string;
+  agentId: string;
+  timestamp: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  notionalUsd: string;
+  priceUsd: string;
+  proofHash: string;
+  compliant: boolean;
+  reason: string;
+}
+

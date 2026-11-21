@@ -1,0 +1,107 @@
+name: Contracts
+
+on:
+  push:
+    paths:
+      - 'contracts/**'
+      - 'packages/testkit/contracts/**'
+      - 'packages/chain-client/src/abi/PolicyModule.json'
+      - 'scripts/export-abi.mjs'
+      - 'packages/agent/**'
+      - 'packages/shared/**'
+      - 'packages/chain-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+      - '.github/workflows/contracts.yml'
+  pull_request:
+    paths:
+      - 'contracts/**'
+      - 'packages/testkit/contracts/**'
+      - 'packages/chain-client/src/abi/PolicyModule.json'
+      - 'scripts/export-abi.mjs'
+      - 'packages/agent/**'
+      - 'packages/shared/**'
+      - 'packages/chain-client/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'tsconfig.json'
+      - '.github/workflows/contracts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Format project Solidity
+        run: forge fmt --check src/PolicyModule.sol src/interfaces src/libraries test/fixtures test/unit test/integration test/fuzz test/invariant script/DeployLocal.s.sol script/DeployFuji.s.sol
+      - name: Build and check contract sizes
+        run: forge build --sizes
+      - name: Unit integration fuzz and invariant
+        run: forge test -vv
+      - name: Check exported ABI matches source
+        run: |
+          node ../scripts/export-abi.mjs
+          git diff --exit-code -- ../packages/chain-client/src/abi/PolicyModule.json
+
+  agent-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install workspace tools
+        run: |
+          npm install --global pnpm@10.11.0
+          pnpm install --frozen-lockfile
+      - name: Check types and TypeScript tests
+        run: |
+          pnpm typecheck
+          pnpm test
+      - name: Live agent against local Safe and PolicyModule
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .runtime
+          anvil --host 127.0.0.1 --port 8545 --silent > .runtime/anvil.log 2>&1 &
+          task_anvil_pid=$!
+          trap 'kill "$task_anvil_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if cast chain-id --rpc-url http://127.0.0.1:8545 >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          export LOCAL_RPC_URL=http://127.0.0.1:8545
+          export DEPLOYER_PRIVATE_KEY
+          DEPLOYER_PRIVATE_KEY=$(cast wallet private-key 'test test test test test test test test test test test junk' 0)
+          export SESSION_ADDRESS=0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+          (cd contracts && forge script script/DeployLocal.s.sol:DeployLocal --rpc-url "$LOCAL_RPC_URL" --broadcast --non-interactive)
+          unset DEPLOYER_PRIVATE_KEY
+          node scripts/record-local-deployment.mjs
+          pnpm agent:integration
+      - name: Store local integration evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-agent-evidence
+          path: .runtime/agent-integration.json
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,6 +1,6 @@
 # Treasury Agent Lab — Bối cảnh dự án
 
-Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Trạng thái: đã dựng cây thư mục và tài liệu, chưa triển khai chức năng.
+Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Cập nhật 2026-11-14: PolicyModule/Safe và agent/chain-client đã chạy xuyên suốt local; 65 Solidity tests và 22 TypeScript tests PASS. Lab/API/dashboard chưa hoàn thành; Fuji có script đã build nhưng đang thiếu ví thử nghiệm để deploy.
 
 Cập nhật 2026-11-11 (đề xuất của Hoàng, chờ nhóm duyệt): định hướng lại thành **AI quản lý quỹ sinh lời trên Avalanche**. Agent phân bổ quỹ vào các nguồn lãi (stablecoin cho vay, sAVAX, trái phiếu token hóa) thay vì chỉ đổi qua lại token thử nghiệm. Kiến trúc policy/lab giữ nguyên; thêm thao tác gửi/rút vault và thu gọn phạm vi MVP. Xem mục 1, 2, 3, 3a, D-09, D-10.
 
@@ -101,7 +101,7 @@ LLM explanation <── dữ liệu có cấu trúc từ kế hoạch và kết 
 | Lưu kết quả | SQLite |
 | Quản lý monorepo | Dự kiến pnpm workspaces |
 
-Phiên bản dependency, framework API, thư viện blockchain và framework kiểm thử TypeScript chưa chốt. Khung hiện tại chưa có manifest, dependency hoặc lệnh chạy ứng dụng; sẽ bổ sung trong task SET-02.
+Đã có pnpm workspace/manifests, schema TypeScript và viem chain client ban đầu. Phần hợp đồng dùng Solidity 0.8.31, EVM Paris, Safe v1.4.1 và OpenZeppelin v5.2.0 được vendor cố định; Foundry chạy được local. Framework API và kiểm thử TypeScript toàn bộ workspace chưa chốt. Xem `contracts/README.md` để build/test phần hợp đồng; SET-02 vẫn cần hoàn thiện phần còn lại.
 
 ## 6. Cây thư mục và quyền sở hữu
 
@@ -179,7 +179,7 @@ Schema và đặc tả là trách nhiệm chung. Giảm việc phụ cho Phú đ
 
 ## 8. Giao diện dữ liệu cần chốt trước khi code song song
 
-Các cấu trúc dưới đây là danh mục cần thiết kế, chưa phải schema đã triển khai. Nguồn dùng chung sẽ ở `packages/shared/src/`; fixture ở `packages/shared/fixtures/`.
+Đã có schema tích hợp v0.2 trong `packages/shared/src/types.ts` và ba fixture policy/portfolio/plan trong `packages/shared/fixtures/`. Planner/client đã khớp hợp đồng qua bài tích hợp local; chi tiết ở `docs/interfaces.md`. Bảng dưới đây vẫn là yêu cầu toàn hệ thống; ScenarioDefinition/RunResult và các fixture lab chưa được triển khai đầy đủ.
 
 | Cấu trúc | Nội dung tối thiểu cần thống nhất |
 | --- | --- |
@@ -238,6 +238,12 @@ Ví dụ recipient lạ: PASS chỉ khi chứng minh lệnh bị từ chối và
 | D-10 | Phạm vi MVP cho demo (mục 2) và thứ tự cắt giảm nếu thiếu thời gian | Cả nhóm |
 
 Ghi kết luận ngay tại đây hoặc trong tài liệu `docs/` có liên kết, kèm ngày và task liên quan. Chưa coi một quyết định là đã duyệt chỉ vì nó xuất hiện trong ví dụ.
+
+### Lựa chọn triển khai local của Phú ngày 2026-11-14
+
+Đặc tả chi tiết ở [policy-spec](docs/policy-spec.md), [threat model](docs/threat-model.md), [bàn giao tích hợp](docs/contract-handoff.md) và [kết quả kiểm chứng](docs/contract-validation.md). Đây là quyết định triển khai v0.1, vẫn cần review chung cho D-01 đến D-09 liên quan.
+
+Cap USD 8 decimals dùng rolling ledger tối đa 256 active swaps, dùng chung các session, không reset khi sửa policy/revoke. Cap chỉ tính đầu vào swap như brainstorm; vault deposit/withdraw không trừ hoặc hoàn cap. Vault dùng ERC-4626 exact-assets, kiểm tra minShares khi gửi và maxShares khi rút. Quản trị phải qua Safe owner-signed transaction. Router hiện là interface của mock, chưa nối DEX thật. Không có deployment Fuji đã kiểm chứng.
 
 ## 11. Tiêu chí nghiệm thu chung
 

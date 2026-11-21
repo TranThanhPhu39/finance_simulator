@@ -1,0 +1,12 @@
+{
+  "name": "@repo/lab",
+  "version": "0.1.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@repo/shared": "workspace:*",
+    "@repo/chain-client": "workspace:*",
+    "@repo/agent": "workspace:*",
+    "viem": "^2.13.0"
+  }
+}

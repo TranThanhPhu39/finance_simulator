@@ -1,0 +1,86 @@
+[
+  {
+    "id": "SC-02",
+    "name": "Tái cân bằng hợp lệ (Swap + Vault Deposit)",
+    "description": "Agent bán bớt phần token A thừa tỷ trọng trong phạm vi hạn mức 24h và gửi USDC vào vault sinh lời đúng quy tắc.",
+    "category": "NORMAL",
+    "actionSource": "AGENT_RULE",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "OK",
+    "stepsDescription": [
+      "Đọc snapshot danh mục và chính sách PolicyModule tại cùng một block.",
+      "Thực thi SWAP_EXACT_IN bán 10 token A (100 USD) sang USDC qua router trong whitelist.",
+      "Thực thi VAULT_DEPOSIT gửi 499 USDC vào vault sinh lời, shares trả về đúng địa chỉ Safe."
+    ]
+  },
+  {
+    "id": "SC-04",
+    "name": "Một lệnh vượt hạn mức 24h (Cap Exceeded)",
+    "description": "Gửi trực tiếp một lệnh swap có giá trị 150 USD vượt quá hạn mức 24h là 100 USD.",
+    "category": "CAP",
+    "actionSource": "DIRECT_SESSION_CALL",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "ERR_CAP_EXCEEDED",
+    "stepsDescription": [
+      "Kiểm tra hạn mức 24h hiện tại của PolicyModule (100 USD).",
+      "Session key gửi lệnh executeSwap với đầu vào 150 USDC (150 USD).",
+      "PolicyModule chặn lệnh với lỗi CapExceeded; số dư Safe và bộ đếm chi tiêu không đổi."
+    ]
+  },
+  {
+    "id": "SC-07",
+    "name": "Token ngoài danh sách cho phép (Unauthorized Token)",
+    "description": "Thử swap sang một token lạ chưa được Safe owner đưa vào whitelist.",
+    "category": "WHITELIST",
+    "actionSource": "HARNESS_MUTATED",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "ERR_UNAUTHORIZED_TOKEN",
+    "stepsDescription": [
+      "Test harness thay đổi địa chỉ tokenOut thành token ngoài whitelist.",
+      "Gửi lệnh executeSwap qua PolicyModule.",
+      "Hợp đồng từ chối với lỗi TokenNotWhitelisted; không có allowance hay tài sản nào bị thất thoát."
+    ]
+  },
+  {
+    "id": "SC-09",
+    "name": "Người nhận là ví lạ (Invalid Recipient)",
+    "description": "Thử chuyển đầu ra của lệnh swap hoặc rút vault về địa chỉ người nhận khác ngoài Safe.",
+    "category": "WHITELIST",
+    "actionSource": "DIRECT_SESSION_CALL",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "ERR_INVALID_RECIPIENT",
+    "stepsDescription": [
+      "Tạo lệnh executeSwap với trường recipient trỏ tới địa chỉ ví ngoài (0x9999...9999).",
+      "Gửi lệnh qua session key đang hoạt động.",
+      "PolicyModule revert ngay với lỗi InvalidRecipient; ví lạ không nhận được bất kỳ token nào."
+    ]
+  },
+  {
+    "id": "SC-11",
+    "name": "Session key đã bị thu hồi (Session Revoked)",
+    "description": "Owner thu hồi quyền của session key; mọi giao dịch tiếp theo từ session đó phải bị chặn.",
+    "category": "SESSION",
+    "actionSource": "DIRECT_SESSION_CALL",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "ERR_SESSION_REVOKED",
+    "stepsDescription": [
+      "Safe owner thực thi giao dịch revokeSession(sessionKey) trên PolicyModule.",
+      "Session key thử gửi một lệnh executeSwap 10 USDC hợp lệ về tham số.",
+      "PolicyModule chặn ngay tại modifier authorized với lỗi SessionRevoked."
+    ]
+  },
+  {
+    "id": "SC-16",
+    "name": "Gửi tiền vào Vault ngoài whitelist (Unauthorized Vault)",
+    "description": "Thử nạp USDC của quỹ vào một hợp đồng ERC-4626 vault chưa được cấp phép.",
+    "category": "WHITELIST",
+    "actionSource": "HARNESS_MUTATED",
+    "supportedEnvs": ["local", "fuji"],
+    "expectedErrorCode": "ERR_UNAUTHORIZED_VAULT",
+    "stepsDescription": [
+      "Test harness sửa địa chỉ targetContract của bước VAULT_DEPOSIT sang vault lạ.",
+      "Gửi lệnh executeVaultDeposit qua PolicyModule.",
+      "PolicyModule revert với lỗi VaultNotWhitelisted và không cấp allowance cho vault lạ."
+    ]
+  }
+]

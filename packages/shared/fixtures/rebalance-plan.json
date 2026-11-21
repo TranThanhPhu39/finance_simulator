@@ -1,0 +1,30 @@
+{
+  "planId": "fixture-plan-v0.2",
+  "snapshotTimestamp": 1800000000,
+  "status": "READY",
+  "isPartial": true,
+  "steps": [
+    {
+      "stepIndex": 0,
+      "targetContract": "0x3000000000000000000000000000000000000001",
+      "estimatedValueUsd": "10000000000",
+      "deadline": 1800000300,
+      "action": "SWAP_EXACT_IN",
+      "tokenIn": "0x2000000000000000000000000000000000000002",
+      "tokenOut": "0x2000000000000000000000000000000000000001",
+      "amountIn": "10000000000000000000",
+      "minAmountOut": "99000000"
+    },
+    {
+      "stepIndex": 1,
+      "targetContract": "0x4000000000000000000000000000000000000001",
+      "estimatedValueUsd": "49900000000",
+      "deadline": 1800000300,
+      "action": "VAULT_DEPOSIT",
+      "tokenIn": "0x2000000000000000000000000000000000000001",
+      "assets": "499000000",
+      "minShares": "494010000"
+    }
+  ],
+  "ruleReasoning": "Đã tạo 2 bước swap/gửi/rút theo giới hạn; cap chỉ tính swap. Xác nhận lại danh mục sau thực thi."
+}

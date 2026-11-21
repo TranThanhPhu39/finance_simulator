@@ -67,3 +67,39 @@ test('apps/api endpoints serve treasury, rebalance preview/execute, scenarios, r
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });
+
+test('apps/api launchpad paper-trade and slash work after restart on an existing SQLite database', async () => {
+  const fs = await import('node:fs');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const tmpFile = path.join(os.tmpdir(), `treasury-launchpad-${Date.now()}.sqlite`);
+
+  try {
+    const firstService = new TreasuryApiService(tmpFile, 'local', 'SIMULATED_POLICY');
+    assert.equal(firstService.listLaunchpadAgents().length, 2);
+    firstService.db.close();
+
+    // Simulate API server restart against the same SQLite file
+    const restartedService = new TreasuryApiService(tmpFile, 'local', 'SIMULATED_POLICY');
+    const res1 = await restartedService.runLaunchpadPaperTrade({
+      agentId: 'agent_avax_yield_01',
+      simulateViolation: false
+    });
+    assert.equal(res1.agent.agentId, 'agent_avax_yield_01');
+    assert.equal(res1.agent.status, 'GRADUATED');
+
+    const res2 = await restartedService.runLaunchpadPaperTrade({
+      agentId: 'agent_delta_sentinel_02',
+      simulateViolation: true
+    });
+    assert.equal(res2.agent.agentId, 'agent_delta_sentinel_02');
+    assert.equal(res2.agent.status, 'SLASHED');
+    assert.equal(res2.agent.bondUsdc, '0');
+    restartedService.db.close();
+  } finally {
+    try {
+      fs.unlinkSync(tmpFile);
+    } catch {}
+  }
+});
+

@@ -121,6 +121,18 @@ export class PaperTradingEngine {
     return (this.actionsByAgent.get(agentId) ?? []).map(a => structuredClone(a));
   }
 
+  public hydrateAgent(agent: RegisteredAgent, actions: PaperTradeAction[] = []): void {
+    this.agents.set(agent.agentId, structuredClone(agent));
+    const sorted = [...actions].sort((a, b) => a.timestamp - b.timestamp);
+    this.actionsByAgent.set(agent.agentId, sorted.map(a => structuredClone(a)));
+    const count = sorted.length;
+    const avgReturn = count > 0 ? Math.round(agent.metrics.totalReturnBps / count) : 60;
+    this.returnsByAgent.set(
+      agent.agentId,
+      sorted.map(a => (a.compliant ? Math.max(20, avgReturn) : -250))
+    );
+  }
+
   public recordPaperTrade(
     agentId: string,
     trade: PaperTradeInput,

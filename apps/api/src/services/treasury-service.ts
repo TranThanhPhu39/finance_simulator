@@ -100,6 +100,11 @@ export class TreasuryApiService {
       ]);
       this.db.saveAgent(s2.agent);
       for (const act of s2.actions) this.db.savePaperAction(act);
+    } else {
+      for (const agent of existingAgents) {
+        const actions = this.db.listPaperActions(agent.agentId);
+        this.paperEngine.hydrateAgent(agent, actions);
+      }
     }
   }
 
@@ -454,6 +459,12 @@ export class TreasuryApiService {
     notionalUsd?: string;
     simulateViolation?: boolean;
   }): Promise<{ agent: RegisteredAgent; actions: PaperTradeAction[] }> {
+    if (!this.paperEngine.getAgent(input.agentId)) {
+      const dbAgent = this.db.listAgents().find(a => a.agentId === input.agentId);
+      if (dbAgent) {
+        this.paperEngine.hydrateAgent(dbAgent, this.db.listPaperActions(input.agentId));
+      }
+    }
     const feeds = await this.getLaunchpadPrices();
     const sym = input.symbol ?? 'AVAX/USD';
     const feed = feeds.find(f => f.symbol === sym) ?? feeds[0];

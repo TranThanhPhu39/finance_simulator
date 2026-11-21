@@ -29,3 +29,6 @@ Bằng chứng CI trên nhánh `feat/hoang-lab-dashboard`:
 - [Contracts — SUCCESS, commit 08106b4](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44769952765): Solidity format/build/65 tests/ABI, typecheck, 30 TS tests và live agent integration. Các commit tiếp theo chỉ sửa workflow lab, không sửa hợp đồng/agent.
 
 Workflow dashboard cố định Ubuntu 24.04 vì `ubuntu-latest` đã chuyển sang Ubuntu 26.04, chưa được Playwright 1.56.1 trong lockfile hỗ trợ. Task giữ REVIEW để thành viên khác kiểm tra; CI PASS không thay thế demo Fuji.
+
+
+Bản hợp nhất ngày 2026-11-21 (2fca6ed): giữ dashboard/Launchpad trên main và bổ sung chế độ Anvil riêng. 39 TS tests, 17/17 scenario Anvil, 10/10 scenario mô phỏng, 3 browser flows và production build PASS trên CI. [Workflow lab/dashboard](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44878242076), [workflow hợp đồng/live agent](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44878242164). Xem [integration-modes.md](integration-modes.md).

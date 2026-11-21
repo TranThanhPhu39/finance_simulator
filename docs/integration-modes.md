@@ -24,3 +24,5 @@ PYTH_OFFLINE=1 dùng giá fallback có nhãn để CI/browser tests tái hiện 
 Đã kiểm chứng local sau hợp nhất: typecheck, 39/39 TS tests (gồm 10 scenario mô phỏng), 17/17 scenario Anvil/API restart/export/owner signing, 3/3 Playwright flows trên desktop/mobile. Browser test thêm kiểm tra Launchpad đăng ký → GRADUATED → SLASHED, suite mô phỏng/export và không có eth_sendTransaction trong mô phỏng. Ảnh đã xem ở .runtime/screenshots; CI lưu artifacts. Production build được kiểm tra với Tailwind và hai dashboard.
 
 Fuji vẫn chưa triển khai. Các scenario reset/time-travel của Anvil không dùng cho Fuji và trả UNSUPPORTED.
+
+Bằng chứng CI bản hợp nhất commit 2fca6ed: [Lab/API/dashboard SUCCESS](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44878242076) và [Contracts/live agent SUCCESS](https://github.com/TranThanhPhu39/finance_simulator/actions/runs/44878242164). Cả hai workflow đã hoàn tất trước khi cập nhật main. Commit tài liệu tiếp theo chỉ ghi lại bằng chứng này.

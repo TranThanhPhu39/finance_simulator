@@ -2,7 +2,7 @@
 
 Agent quản lý quỹ có quyền hạn chế, kết hợp phòng kiểm thử để kiểm chứng chính sách bằng trạng thái tài sản trước/sau. Dự án dùng Solidity/Foundry, Safe v1.4.1, TypeScript, React/Vite/Tailwind và SQLite.
 
-**Trạng thái ngày 21/11/2026:** đã hợp nhất các nhánh vào `main`, chạy được mô phỏng và giao dịch local trên Anvil. **Chưa triển khai và xác minh trên Avalanche Fuji.** Launchpad hiện là paper trading; chưa đăng ký ERC-8004 hoặc khóa/cắt phạt USDC thật trên blockchain.
+**Trạng thái ngày 21/11/2026:** đã hợp nhất các nhánh vào `main`, chạy được mô phỏng, giao dịch local trên Anvil **và đã triển khai + xác minh toàn bộ hệ thống hợp đồng (`Safe`, `PolicyModule`, `MockUSDC`, `MockTokenA`, `MockPriceOracle`, `MockRouter`, `MockVault4626`) trên Avalanche Fuji Testnet (`Chain ID: 43113`, xem `deployments/fuji.json`)**. Launchpad hiện là paper trading; chưa đăng ký ERC-8004 hoặc khóa/cắt phạt USDC thật trên blockchain.
 
 ## Sản phẩm làm gì?
 
@@ -152,16 +152,39 @@ Thao tác cấp/thu hồi session và sửa policy trong mô phỏng chỉ thay 
 
 ## Avalanche Fuji và hồ sơ nộp bài
 
-**Chưa có deployment Fuji được xác minh.** Script và hướng dẫn nằm ở [fuji-deployment.md](docs/fuji-deployment.md). Chỉ ghi địa chỉ/txHash vào metadata sau khi broadcast và kiểm tra receipt thật; không điền địa chỉ mẫu làm bằng chứng. Các scenario cần reset/time-travel của Anvil trả UNSUPPORTED trên Fuji.
+**Đã triển khai và xác minh trên Avalanche Fuji Testnet (`Chain ID: 43113`, blocks `61425068` – `61425069`, toàn bộ 19 giao dịch khởi tạo & cấu hình Safe/PolicyModule đạt `status: 0x1`).** Metadata đầy đủ nằm tại [`deployments/fuji.json`](deployments/fuji.json) và chi tiết tại [`docs/fuji-deployment.md`](docs/fuji-deployment.md).
+
+### Bảng Địa chỉ Hợp đồng trên Avalanche Fuji Testnet (`Chain ID: 43113`)
+
+| Hợp đồng / Tài khoản | Địa chỉ trên Avalanche Fuji | Link Snowtrace Testnet Explorer |
+| --- | --- | --- |
+| **Safe Smart Account (`SafeProxy`)** | `0x920BF449f2dB2f36a1101C50E18074F94988963B` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x920BF449f2dB2f36a1101C50E18074F94988963B) |
+| **PolicyModule v0.1** | `0x61eaabCa8D14Cf80b8d0FbA84031dcfd0a7cf55a` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x61eaabCa8D14Cf80b8d0FbA84031dcfd0a7cf55a) |
+| **Safe Singleton v1.4.1** | `0x22F19E8e980EB8457573974A55a48bc8125BDAcD` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x22F19E8e980EB8457573974A55a48bc8125BDAcD) |
+| **MockUSDC (6 decimals)** | `0x072b540f6cd86a1e22fd8cf068869b2844a88A80` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x072b540f6cd86a1e22fd8cf068869b2844a88A80) |
+| **MockTokenA (`sAVAX-MOCK`, 18 decimals)** | `0x27f5C7241d1CcB935037a382Fbad26506C2c19b3` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x27f5C7241d1CcB935037a382Fbad26506C2c19b3) |
+| **MockPriceOracle** | `0xbD3928067440B4c181D03900d777e26228798ca4` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xbD3928067440B4c181D03900d777e26228798ca4) |
+| **MockRouter** | `0x8cEA45c064b8aDC8534968e7d0e6C0AdCc19f438` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x8cEA45c064b8aDC8534968e7d0e6C0AdCc19f438) |
+| **MockVault4626 (`vUSDC`, 5% APY)** | `0xa1EeFb44Ec2F6c4Ec6A88f9CAC5C791BC446DACB` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xa1EeFb44Ec2F6c4Ec6A88f9CAC5C791BC446DACB) |
+| **Deployer / Safe Owner** | `0xBb2FEBd51B210BC75db7a31D31A183365C4c42cb` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0xBb2FEBd51B210BC75db7a31D31A183365C4c42cb) |
+| **Authorized Session Key (Agent)** | `0x6BC23f3f0c6911F642Ab02eB26A7535AC9Ec0C4D` | [Xem trên Snowtrace](https://testnet.snowtrace.io/address/0x6BC23f3f0c6911F642Ab02eB26A7535AC9Ec0C4D) |
+
+### Các Giao dịch (Transaction Hashes) Tiêu biểu trên Avalanche Fuji
+
+- **Triển khai `SafeProxy` (`0x920BF449...963B`)**: [`0x4923d64bb3c0194ef84157c87f7b2aa604d9b313e67387261eb7155d87e979f0`](https://testnet.snowtrace.io/tx/0x4923d64bb3c0194ef84157c87f7b2aa604d9b313e67387261eb7155d87e979f0)
+- **Triển khai `PolicyModule` (`0x61eaabCa...f55a`)**: [`0x1cbdda6f97ff08c0d1eb386061c6d673b615d3828ce112854ad61e1bef421bc7`](https://testnet.snowtrace.io/tx/0x1cbdda6f97ff08c0d1eb386061c6d673b615d3828ce112854ad61e1bef421bc7)
+- **Safe Owner kích hoạt `enableModule(PolicyModule)`**: [`0x08121d7656dcb390c5d2d8b9587d971f7625cbe5a5b231b3073d55cd7e8294af`](https://testnet.snowtrace.io/tx/0x08121d7656dcb390c5d2d8b9587d971f7625cbe5a5b231b3073d55cd7e8294af)
+- **Safe Owner cấp quyền `grantSession` cho Agent**: [`0x7b963ba5ec4aa34f670ebb5f9832cea1bdbf9afe53a9d613a74c574d5de3184b`](https://testnet.snowtrace.io/tx/0x7b963ba5ec4aa34f670ebb5f9832cea1bdbf9afe53a9d613a74c574d5de3184b)
+- **Nạp vốn khởi tạo `600 USDC` và `40 sAVAX-MOCK` vào Safe**: [`0xc0032267418cd071f21f65dc115a1d0db0a84feaf0ae7a060cf4f697edbfa859`](https://testnet.snowtrace.io/tx/0xc0032267418cd071f21f65dc115a1d0db0a84feaf0ae7a060cf4f697edbfa859) & [`0x36009c16555f8a60f3c249da1f8835c22632178862eb6b43bbde61385fad2542`](https://testnet.snowtrace.io/tx/0x36009c16555f8a60f3c249da1f8835c22632178862eb6b43bbde61385fad2542)
 
 Theo [FAQ UniHack](https://team1vn.xyz/#faq-submit) và [biểu mẫu Submit Project](https://team1vn.xyz/dashboard.html), kiểm tra ngày 21/11/2026:
 
 - [x] Repo GitHub để ban giám khảo xem code và hướng dẫn chạy.
+- [x] Xác minh phần tích hợp Avalanche trên Avalanche Fuji Testnet (`Chain ID: 43113`, xem bảng địa chỉ & `deployments/fuji.json`).
 - [ ] Tên dự án (tối đa 100 ký tự) và mô tả (tối đa 800 ký tự) trong form.
 - [ ] Link pitch slides Canva hoặc Google Slides, cho phép xem.
 - [ ] Link video demo 2–3 phút, mở được không cần đăng nhập.
 - [ ] Kiểm tra tất cả liên kết và bấm **Submit project**; **Save draft chưa tính là nộp**.
-- [ ] Xác minh phần tích hợp Avalanche trên Avalanche L1, Fuji hoặc C-Chain; bản Anvil local chưa thay thế phần này.
 
 Live app, địa chỉ hợp đồng/link explorer và tài liệu bổ sung là các mục tùy chọn trong form. Nếu repo private, thêm GitHub user **`tuantqse90`** làm collaborator. BTC ghi rõ link không truy cập được có thể khiến đội bị loại. Hạn nộp được công bố: **23:59 ngày 21/11/2026, giờ Việt Nam**; [cấu hình BTC](https://team1vn.xyz/api/hack/config). Checklist trên là danh sách cần chuẩn bị, không xác nhận nhóm đã nộp hồ sơ.
 

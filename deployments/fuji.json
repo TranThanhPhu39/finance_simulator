@@ -1,0 +1,156 @@
+{
+  "environment": "fuji",
+  "network": "Avalanche Fuji Testnet",
+  "chainId": 43113,
+  "rpcUrl": "https://api.avax-test.network/ext/bc/C/rpc",
+  "explorerUrl": "https://testnet.snowtrace.io",
+  "simulatedYield": true,
+  "verifiedAt": "2026-11-21T12:48:22.656Z",
+  "deployer": "0xBb2FEBd51B210BC75db7a31D31A183365C4c42cb",
+  "sessionAddress": "0x6BC23f3f0c6911F642Ab02eB26A7535AC9Ec0C4D",
+  "addresses": {
+    "SafeSingleton": "0x22f19e8e980eb8457573974a55a48bc8125bdacd",
+    "Safe": "0x920bf449f2db2f36a1101c50e18074f94988963b",
+    "MockUSDC": "0x072b540f6cd86a1e22fd8cf068869b2844a88a80",
+    "MockTokenA": "0x27f5c7241d1ccb935037a382fbad26506c2c19b3",
+    "MockPriceOracle": "0xbd3928067440b4c181d03900d777e26228798ca4",
+    "MockRouter": "0x8cea45c064b8adc8534968e7d0e6c0adcc19f438",
+    "MockVault4626": "0xa1eefb44ec2f6c4ec6a88f9cac5c791bc446dacb",
+    "PolicyModule": "0x61eaabca8d14cf80b8d0fba84031dcfd0a7cf55a"
+  },
+  "transactions": [
+    {
+      "hash": "0xe2441cf82508f6da142d9c6c3310fdc6a83adbf1bbba9dc2774c05a75fcdce09",
+      "blockNumber": 61425068,
+      "type": "CREATE",
+      "contractName": "Safe",
+      "function": null
+    },
+    {
+      "hash": "0x4923d64bb3c0194ef84157c87f7b2aa604d9b313e67387261eb7155d87e979f0",
+      "blockNumber": 61425068,
+      "type": "CREATE",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0x4c12f84f59028a052d3f6ce59527e98e6e751f2a3a218d96b8acd56ef0c9aaf8",
+      "blockNumber": 61425068,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0xad30fba6e9f3264ec9b7c34103ad15699baa9725441993e9bc0933ffb6c492ae",
+      "blockNumber": 61425068,
+      "type": "CREATE",
+      "contractName": "MockERC20",
+      "function": null
+    },
+    {
+      "hash": "0x1fe13648003cba690be52579a84565096425d945547e09ee1e5dfe89d4753abd",
+      "blockNumber": 61425068,
+      "type": "CREATE",
+      "contractName": "MockERC20",
+      "function": null
+    },
+    {
+      "hash": "0xa04fe3312e19ce8e606e052ed0068c76db6cdb173b4b7d20d0a4bc9a4e3d5a33",
+      "blockNumber": 61425069,
+      "type": "CREATE",
+      "contractName": "MockPriceOracle",
+      "function": null
+    },
+    {
+      "hash": "0x4df2b10b4e6ebfbfbf06e1f87daa447b8c270d22b5ed451bd8408d04a909aed3",
+      "blockNumber": 61425069,
+      "type": "CREATE",
+      "contractName": "MockRouter",
+      "function": null
+    },
+    {
+      "hash": "0x3cdaa72391dd98b5f4b57f533c0b45a9f1f842e09b43665d2fbf5a9243b45085",
+      "blockNumber": 61425069,
+      "type": "CREATE",
+      "contractName": "MockVault4626",
+      "function": null
+    },
+    {
+      "hash": "0x1cbdda6f97ff08c0d1eb386061c6d673b615d3828ce112854ad61e1bef421bc7",
+      "blockNumber": 61425069,
+      "type": "CREATE",
+      "contractName": "PolicyModule",
+      "function": null
+    },
+    {
+      "hash": "0x08121d7656dcb390c5d2d8b9587d971f7625cbe5a5b231b3073d55cd7e8294af",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0xd3561f2aee4ef754369698b014df3cd886d3f9a9d45ff1b1b0fd3dca0c22372e",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0x22607c305eef5d0a300db21ba10d91cbd02d439182fe4a62890c10fae24ce284",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0x9c1c38c1c5f60be0531a5ce1b86c54307273269fe8389e4cfcccf5a5f98e6875",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0x43f371ed6100cb16e82de0cc0350104dc0b623da05a8efd0804471c21225269f",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0x7b963ba5ec4aa34f670ebb5f9832cea1bdbf9afe53a9d613a74c574d5de3184b",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "SafeProxy",
+      "function": null
+    },
+    {
+      "hash": "0xf2627e2b5116ac91d8913263dbf42434d940146a10b44c72fc0d94cfe390b64b",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "MockPriceOracle",
+      "function": "setPrice(address,uint256)"
+    },
+    {
+      "hash": "0x14303906c43e3ea032872216ffdb518d67371d6dee829819b21cd59ce8c43380",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "MockPriceOracle",
+      "function": "setPrice(address,uint256)"
+    },
+    {
+      "hash": "0xc0032267418cd071f21f65dc115a1d0db0a84feaf0ae7a060cf4f697edbfa859",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "MockERC20",
+      "function": "mint(address,uint256)"
+    },
+    {
+      "hash": "0x36009c16555f8a60f3c249da1f8835c22632178862eb6b43bbde61385fad2542",
+      "blockNumber": 61425069,
+      "type": "CALL",
+      "contractName": "MockERC20",
+      "function": "mint(address,uint256)"
+    }
+  ]
+}

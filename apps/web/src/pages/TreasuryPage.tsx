@@ -14,8 +14,8 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import type { RebalancePlan, RunResult } from '@repo/shared';
-import { apiClient, formatTokenUnits, formatUsd8, shortenHex, type TreasuryOverview } from '../api/client';
-import { sendOwnerTransactionIfPossible, type WalletState } from '../wallet/wallet';
+import { apiClient, formatTokenUnits, formatUsd8, shortenHex, type TreasuryOverview } from '../api/simulator-client';
+import { sendOwnerTransactionIfPossible, type WalletState } from '../wallet/simulator-wallet';
 
 interface TreasuryPageProps {
   overview: TreasuryOverview | null;

@@ -11,6 +11,7 @@ interface SqliteStatement {
 }
 
 interface SqliteDatabase {
+  close(): void;
   exec(sql: string): void;
   prepare(sql: string): SqliteStatement;
 }
@@ -28,6 +29,8 @@ export class ApiDatabase {
     this.db = new DatabaseSync(dbPath) as SqliteDatabase;
     this.migrate();
   }
+
+  public close(): void { this.db.close(); }
 
   public migrate(): void {
     this.db.exec(`

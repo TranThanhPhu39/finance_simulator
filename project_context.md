@@ -1,6 +1,6 @@
 # Treasury Agent Lab — Bối cảnh dự án
 
-Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Cập nhật 2026-11-14: PolicyModule/Safe và agent/chain-client đã chạy xuyên suốt local; 65 Solidity tests và 22 TypeScript tests PASS. Lab/API/dashboard chưa hoàn thành; Fuji có script đã build nhưng đang thiếu ví thử nghiệm để deploy.
+Ngày khởi tạo: 2026-11-09 (Asia/Saigon). Cập nhật 2026-11-20: đã triển khai local cả hợp đồng, agent và lab/API/dashboard. Lab 17/17 scenarios PASS; SQLite/queue/owner signing/exports/restart được kiểm tra; browser desktop/mobile và sai mạng/hủy ký PASS. CI Ubuntu đã tái hiện thành công (xem [nghiệm thu](docs/acceptance.md)). Fuji vẫn thiếu ví thử nghiệm/deployment để xác minh. Cả ba phần đang chờ nhóm review, không đồng nghĩa hoàn thành bản demo Fuji.
 
 Cập nhật 2026-11-11 (đề xuất của Hoàng, chờ nhóm duyệt): định hướng lại thành **AI quản lý quỹ sinh lời trên Avalanche**. Agent phân bổ quỹ vào các nguồn lãi (stablecoin cho vay, sAVAX, trái phiếu token hóa) thay vì chỉ đổi qua lại token thử nghiệm. Kiến trúc policy/lab giữ nguyên; thêm thao tác gửi/rút vault và thu gọn phạm vi MVP. Xem mục 1, 2, 3, 3a, D-09, D-10.
 
@@ -101,7 +101,7 @@ LLM explanation <── dữ liệu có cấu trúc từ kế hoạch và kết 
 | Lưu kết quả | SQLite |
 | Quản lý monorepo | Dự kiến pnpm workspaces |
 
-Đã có pnpm workspace/manifests, schema TypeScript và viem chain client ban đầu. Phần hợp đồng dùng Solidity 0.8.31, EVM Paris, Safe v1.4.1 và OpenZeppelin v5.2.0 được vendor cố định; Foundry chạy được local. Framework API và kiểm thử TypeScript toàn bộ workspace chưa chốt. Xem `contracts/README.md` để build/test phần hợp đồng; SET-02 vẫn cần hoàn thiện phần còn lại.
+Đã có pnpm workspace, Node 24+ API dùng node:http và node:sqlite, React/Vite dashboard, Node test runner và Playwright browser tests. Phần hợp đồng dùng Solidity 0.8.31, EVM Paris, Safe v1.4.1/OpenZeppelin v5.2.0 vendor cố định. Hướng dẫn end-to-end ở docs/demo-guide.md; build/typecheck, unit, full lab/API và browser test có lệnh tái hiện.
 
 ## 6. Cây thư mục và quyền sở hữu
 
@@ -179,7 +179,7 @@ Schema và đặc tả là trách nhiệm chung. Giảm việc phụ cho Phú đ
 
 ## 8. Giao diện dữ liệu cần chốt trước khi code song song
 
-Đã có schema tích hợp v0.2 trong `packages/shared/src/types.ts` và ba fixture policy/portfolio/plan trong `packages/shared/fixtures/`. Planner/client đã khớp hợp đồng qua bài tích hợp local; chi tiết ở `docs/interfaces.md`. Bảng dưới đây vẫn là yêu cầu toàn hệ thống; ScenarioDefinition/RunResult và các fixture lab chưa được triển khai đầy đủ.
+Schema agent v0.2 ở `packages/shared/src/types.ts`; ScenarioDefinition, RunResult, ChainEvidence, TransactionEvidence, TreasuryView và verdict/status ở `lab-types.ts`. Catalog 17 scenarios có source/version/capability và runner thực thi local. JSON/CSV lấy từ SQLite/evidence thực; dashboard không đọc fixture để giả lập kết quả. Chi tiết ở docs/interfaces.md, docs/api.md và docs/acceptance.md.
 
 | Cấu trúc | Nội dung tối thiểu cần thống nhất |
 | --- | --- |

@@ -47,7 +47,7 @@ REST API + SQLite Persistence (apps/api — Node 24 native node:sqlite)
 | `packages/chain-client/` | `ChainClient` & `PolicyClient` (`viem`): đọc trạng thái tại cùng một block, đóng gói calldata cho `PolicyModule`, preflight simulation, gửi giao dịch và giải mã nested custom errors (`decodePolicyErrorDetails`) | Tiến + Phú |
 | `packages/agent/` | `readPortfolioSnapshot`, thuật toán `computeRebalancePlan`, `PlanExecutor` (chống gửi trùng `planId` + fingerprint) và `generateExplanation` | Tiến + Phú |
 | `packages/lab/` | Danh mục 10 kịch bản kiểm thử (`SC-01` → `SC-10`), `policy-simulator.ts`, `onchain-adapter.ts`, bộ kiểm tra `assertions.ts`, xuất báo cáo `evidence.ts` (JSON/CSV), cùng `pyth-client.ts` và `paper-trading.ts` (Topic 16) | Hoàng |
-| `apps/api/` | HTTP REST Server (port `3001`) + cơ sở dữ liệu SQLite (`runs`, `run_steps`, `assertions`, `transaction_evidence`, `launchpad_agents`, `launchpad_actions`) và `executionLock` tuần tự | Hoàng |
+| `apps/api/` | HTTP REST Server (port `8787`) + cơ sở dữ liệu SQLite (`runs`, `run_steps`, `assertions`, `transaction_evidence`, `launchpad_agents`, `launchpad_actions`) và `executionLock` tuần tự | Hoàng |
 | `apps/web/` | Ứng dụng Web Dashboard 4 màn hình (port `5173`): **1. Quỹ & Chính sách**, **2. Phòng Kiểm Thử**, **3. Bằng Chứng & Lịch Sử**, **4. StockAgent Launchpad** | Hoàng |
 | `docs/` | Đặc tả kỹ thuật: [policy-spec.md](docs/policy-spec.md), [threat-model.md](docs/threat-model.md), [interfaces.md](docs/interfaces.md), [contract-handoff.md](docs/contract-handoff.md), [contract-validation.md](docs/contract-validation.md), [fuji-deployment.md](docs/fuji-deployment.md) | Cả nhóm |
 
@@ -56,7 +56,7 @@ REST API + SQLite Persistence (apps/api — Node 24 native node:sqlite)
 ## 3. Hướng dẫn Cài đặt, Chạy Kiểm thử & Khởi động Ứng dụng
 
 ### Yêu cầu môi trường
-- **Node.js**: `>= 22.5.0` (khuyến nghị **Node `v24.x`** để sử dụng trực tiếp module SQLite tích hợp sẵn `node:sqlite` không cần cài C++ build tools).
+- **Node.js**: `>= 24` (**Node `v24.x`** để sử dụng trực tiếp module SQLite tích hợp sẵn `node:sqlite` không cần cài C++ build tools).
 - **Package Manager**: `pnpm` (có thể bật qua `corepack enable`).
 - **Foundry (`forge`, `anvil`)**: Dùng khi build và chạy bộ kiểm thử Solidity trong `contracts/`.
 
@@ -74,10 +74,10 @@ cd contracts
 forge test -vv
 ```
 
-### Bước 2: Khởi chạy đồng thời Backend API (port 3001) & Web Dashboard (port 5173)
+### Bước 2: Khởi chạy đồng thời Backend API (port 8787) & Web Dashboard (port 5173)
 Mở 2 cửa sổ terminal tại thư mục gốc của repo:
 
-**Terminal 1 — Khởi chạy API & SQLite Server (`http://localhost:3001`):**
+**Terminal 1 — Khởi chạy API & SQLite Server (`http://localhost:8787`):**
 ```bash
 pnpm run api:dev
 ```
@@ -100,7 +100,7 @@ Sau đó mở trình duyệt tại **`http://localhost:5173`** để trải nghi
 | Phân hệ Kiểm thử | Số lượng Tests | Trạng thái | Nội dung kiểm chứng |
 | --- | --- | --- | --- |
 | **Solidity Smart Contracts** (`contracts/test/`) | **65 / 65 PASS** | ✅ 100% PASS | 36 Unit tests (`PolicyModuleTest`), 13 ERC-4626 Vault integration tests (`VaultTest`), 8 Adversarial attack tests (`AdversarialTest`), 4 Fuzz suites × 256 runs (`PolicyFuzzTest`), 2 Invariant suites × 64 runs × depth 32 (`PolicyInvariantTest`), 2 Counter tests. Đã kiểm chứng trên GitHub Actions CI run `43613122263`. |
-| **TypeScript Workspace** (`agent`, `chain-client`, `lab`, `api`) | **30 / 30 PASS** | ✅ 100% PASS | 9 tests thuật toán `rebalancer.test.ts`, 8 tests `executor.test.ts` (deduplication, preflight, timeout), 5 tests `policy-client.test.ts` (ABI decoding, exact-assets bounds), 7 tests `lab.test.ts` (10 scenarios `SC-01..SC-10`, JSON/CSV export, Pyth Hermes feeds, Paper Trading `keccak256` Proof-of-Action, Graduation & Slashing), 1 integration test toàn trình `api.test.ts`. |
+| **TypeScript Workspace** (`agent`, `chain-client`, `lab`, `api`) | **39 / 39 PASS** | ✅ 100% PASS | 9 tests thuật toán `rebalancer.test.ts`, 8 tests `executor.test.ts` (deduplication, preflight, timeout), 5 tests `policy-client.test.ts` (ABI decoding, exact-assets bounds), 4 tests lab on-chain, 4 tests SQLite/queue, 7 tests mô phỏng/Launchpad, 1 test API mô phỏng và 1 test cách ly hai API. Ngoài unit tests: 17/17 scenario Anvil và 3 Playwright flows PASS; xem docs/integration-modes.md. |
 | **Web Production Build** (`apps/web`) | **Vite Build** | ✅ PASS | Biên dịch sạch toàn bộ React 19 + TypeScript + Tailwind CSS v4 (`tsc --noEmit` & `vite build`). |
 
 ---
@@ -117,3 +117,18 @@ Sau đó mở trình duyệt tại **`http://localhost:5173`** để trải nghi
 | **MockPriceOracle** | Avalanche Fuji | `43113` | `TBD (Cập nhật từ deployments/fuji.json sau khi broadcast)` | Nguồn giá 8 decimals USD |
 | **MockRouter** | Avalanche Fuji | `43113` | `TBD (Cập nhật từ deployments/fuji.json sau khi broadcast)` | Router exact-input trong whitelist |
 | **MockVault4626 (vUSDC)** | Avalanche Fuji | `43113` | `TBD (Cập nhật từ deployments/fuji.json sau khi broadcast)` | Vault sinh lời chuẩn ERC-4626 |
+
+## Chế độ tích hợp sau hợp nhất
+
+Yêu cầu Node 24+, pnpm 10.11.0; Foundry cho Anvil. Chạy API ở 8787, Vite ở 5173:
+
+```powershell
+corepack pnpm@10.11.0 install --frozen-lockfile
+corepack pnpm@10.11.0 api:dev
+# Terminal khác
+corepack pnpm@10.11.0 web:dev
+```
+
+Trang mặc định giữ dashboard bốn màn hình và Launchpad mô phỏng. Thanh chế độ chuyển sang **On-chain Anvil** cho agent/17 scenario có receipt và số dư thật; dừng API rồi chạy `corepack pnpm@10.11.0 local:prepare` trước khi dùng Anvil lần đầu. API mô phỏng nằm ở `/api/simulation/*`; API on-chain ở `/api/*`. Hai DB riêng giữ lịch sử cũ và mới. Mô phỏng không yêu cầu ví ký hay gửi giao dịch tới địa chỉ fixture.
+
+Xem [hướng dẫn hợp nhất](docs/integration-modes.md) và [demo Anvil](docs/demo-guide.md).

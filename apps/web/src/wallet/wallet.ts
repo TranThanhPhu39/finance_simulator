@@ -1,83 +1,74 @@
-export interface WalletState {
-  connected: boolean;
-  address: string | null;
-  chainId: number | null;
-  hasProvider: boolean;
-  notice: string | null;
-}
-
+import {
+  createWalletClient,
+  custom,
+  http,
+  type Address,
+  type EIP1193Provider,
+  type Hex,
+} from "viem";
+import { foundry } from "viem/chains";
 declare global {
   interface Window {
-    ethereum?: {
-      request: (args: { method: string; params?: unknown[] }) => Promise<any>;
-    };
+    ethereum?: EIP1193Provider;
   }
 }
-
-export async function connectOwnerWallet(): Promise<WalletState> {
-  if (typeof window === 'undefined' || !window.ethereum) {
+export type ConnectedWallet = {
+  address: Address;
+  mode: "extension" | "anvil";
+  send: (to: Address, data: Hex) => Promise<Hex>;
+};
+export async function connectWallet(
+  mode: "extension" | "anvil",
+  rpcUrl: string,
+  owner: string,
+): Promise<ConnectedWallet> {
+  if (mode === "extension") {
+    const provider = window.ethereum;
+    if (!provider)
+      throw new Error(
+        "Chưa tìm thấy ví trình duyệt. Có thể dùng ví Anvil cho demo local.",
+      );
+    const accounts = await provider.request({ method: "eth_requestAccounts" });
+    const chain = await provider.request({ method: "eth_chainId" });
+    if (chain !== "0x7a69")
+      throw new Error(
+        "Ví đang sai mạng. Chuyển sang Anvil chain 31337 rồi kết nối lại.",
+      );
+    const address = accounts[0];
+    if (!address || address.toLowerCase() !== owner.toLowerCase())
+      throw new Error("Ví này không phải owner của Safe.");
+    const client = createWalletClient({
+      account: address,
+      chain: foundry,
+      transport: custom(provider),
+    });
     return {
-      connected: true,
-      address: '0x1000000000000000000000000000000000000001',
-      chainId: 31337,
-      hasProvider: false,
-      notice: 'Không phát hiện tiện ích ví (MetaMask/Core). Đã kích hoạt Ví Owner Mô phỏng (Simulated Safe Owner) để bạn thao tác đầy đủ.'
+      address,
+      mode,
+      send: (to, data) => client.sendTransaction({ to, data, value: 0n }),
     };
   }
-
-  try {
-    const accounts = (await window.ethereum.request({ method: 'eth_requestAccounts' })) as string[];
-    const chainHex = (await window.ethereum.request({ method: 'eth_chainId' })) as string;
-    const chainId = parseInt(chainHex, 16);
-    return {
-      connected: accounts.length > 0,
-      address: accounts[0] ?? null,
-      chainId,
-      hasProvider: true,
-      notice: `Đã kết nối ví Web3 (${chainId === 43113 ? 'Avalanche Fuji' : chainId === 31337 ? 'Anvil Local' : `Chain ${chainId}`}).`
-    };
-  } catch (err) {
-    return {
-      connected: false,
-      address: null,
-      chainId: null,
-      hasProvider: true,
-      notice: `Người dùng từ chối kết nối ví hoặc có lỗi: ${err instanceof Error ? err.message : String(err)}. Vẫn có thể thao tác ở chế độ Simulated.`
-    };
-  }
-}
-
-export async function sendOwnerTransactionIfPossible(
-  wallet: WalletState,
-  tx: { to: string; data: string }
-): Promise<{ sentOnchain: boolean; txHash?: string; message: string }> {
-  if (wallet.hasProvider && wallet.connected && wallet.address && typeof window !== 'undefined' && window.ethereum) {
-    try {
-      const hash = (await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [
-          {
-            from: wallet.address,
-            to: tx.to,
-            data: tx.data,
-            value: '0x0'
-          }
-        ]
-      })) as string;
-      return {
-        sentOnchain: true,
-        txHash: hash,
-        message: `Đã gửi giao dịch on-chain qua ví Owner: ${hash}`
-      };
-    } catch {
-      return {
-        sentOnchain: false,
-        message: 'Ví Web3 không gửi giao dịch on-chain (đã áp dụng trực tiếp trên trạng thái Simulated Policy).'
-      };
-    }
-  }
+  if (!["localhost", "127.0.0.1", "[::1]"].includes(new URL(rpcUrl).hostname))
+    throw new Error("Ví Anvil chỉ dùng loopback local.");
+  const client = createWalletClient({
+    account: owner as Address,
+    chain: foundry,
+    transport: http(rpcUrl),
+  });
+  if ((await client.getChainId()) !== 31337) throw new Error("RPC sai mạng.");
   return {
-    sentOnchain: false,
-    message: 'Đã thực thi thành công trên PolicyModule (Chế độ Simulated Safe Owner).'
+    address: owner as Address,
+    mode,
+    send: (to, data) => client.sendTransaction({ to, data, value: 0n }),
   };
+}
+export function userRejected(error: unknown): boolean {
+  let current = error;
+  for (let i = 0; i < 10 && current && typeof current === "object"; i++) {
+    const item = current as { code?: number; cause?: unknown; name?: string };
+    if (item.code === 4001 || item.name === "UserRejectedRequestError")
+      return true;
+    current = item.cause;
+  }
+  return false;
 }

@@ -13,7 +13,7 @@ import {
   Hash
 } from 'lucide-react';
 import type { PaperTradeAction, PythPriceFeed, RegisteredAgent } from '@repo/shared';
-import { apiClient, formatTokenUnits, formatUsd8, shortenHex } from '../api/client';
+import { apiClient, formatTokenUnits, formatUsd8, shortenHex } from '../api/simulator-client';
 
 export const LaunchpadPage: React.FC = () => {
   const [prices, setPrices] = useState<PythPriceFeed[]>([]);

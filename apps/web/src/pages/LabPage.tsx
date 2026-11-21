@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Play, FlaskConical, CheckCircle2, XCircle, AlertCircle, ArrowRight, Filter } from 'lucide-react';
 import type { RunResult, ScenarioCategory, ScenarioDefinition } from '@repo/shared';
-import { apiClient } from '../api/client';
+import { apiClient } from '../api/simulator-client';
 
 interface LabPageProps {
   scenarios: ScenarioDefinition[];
@@ -94,7 +94,7 @@ export const LabPage: React.FC<LabPageProps> = ({
           <div className="flex items-center gap-2">
             <FlaskConical className="h-5 w-5 text-[#E84142]" />
             <h2 className="text-lg font-bold text-white">
-              Phòng Kiểm Thử Chính Sách On-Chain (10 Kịch Bản Chuẩn)
+              Phòng Mô Phỏng Chính Sách (10 Kịch Bản Chuẩn)
             </h2>
           </div>
           <p className="mt-1 text-xs text-slate-400">

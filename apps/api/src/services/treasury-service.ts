@@ -23,9 +23,9 @@ import {
   exportRunAsCsv,
   exportRunAsJson,
   fetchPythPriceFeeds,
-  listScenarios,
-  runScenario,
-  runSuite,
+  listSimulationScenarios,
+  runSimulationScenario,
+  runSimulationSuite,
   type SimulatorState
 } from '@repo/lab';
 import { ApiDatabase } from '../db/migrations/database';
@@ -356,7 +356,7 @@ export class TreasuryApiService {
   }
 
   public getScenarios(): ScenarioDefinition[] {
-    return listScenarios();
+    return listSimulationScenarios();
   }
 
   public async triggerScenarioRun(input: {
@@ -369,7 +369,7 @@ export class TreasuryApiService {
       const env = input.env ?? this.env;
       const executionMode = input.executionMode ?? this.executionMode;
       if (input.scenarioIds && input.scenarioIds.length > 0) {
-        const results = await runSuite(input.scenarioIds, {
+        const results = await runSimulationSuite(input.scenarioIds, {
           env,
           executionMode,
           fallbackToSimulation: executionMode === 'SIMULATED_POLICY'
@@ -378,7 +378,7 @@ export class TreasuryApiService {
         return results;
       }
       if (input.scenarioId) {
-        const r = await runScenario(input.scenarioId, {
+        const r = await runSimulationScenario(input.scenarioId, {
           env,
           executionMode,
           fallbackToSimulation: executionMode === 'SIMULATED_POLICY'
@@ -386,7 +386,7 @@ export class TreasuryApiService {
         this.db.saveRun(r);
         return [r];
       }
-      const results = await runSuite(undefined, {
+      const results = await runSimulationSuite(undefined, {
         env,
         executionMode,
         fallbackToSimulation: executionMode === 'SIMULATED_POLICY'

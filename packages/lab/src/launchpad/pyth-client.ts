@@ -97,6 +97,7 @@ export async function fetchPythPriceFeeds(
   timeoutMs = 8000
 ): Promise<PythPriceFeed[]> {
   const list = symbols && symbols.length > 0 ? symbols : (Object.keys(PYTH_FEEDS) as SupportedPythSymbol[]);
+  if (process.env.PYTH_OFFLINE === '1') return getFallbackPythFeeds(list);
   const queryParams = list.map(sym => `ids[]=${encodeURIComponent(PYTH_FEEDS[sym].feedId)}`).join('&');
   const url = `https://hermes.pyth.network/v2/updates/price/latest?${queryParams}`;
 

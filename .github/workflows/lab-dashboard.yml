@@ -1,0 +1,114 @@
+name: Lab API and dashboard
+on:
+  push:
+    paths:
+      [
+        "apps/**",
+        "packages/**",
+        "scripts/local-prepare.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "playwright.config.ts",
+        ".github/workflows/lab-dashboard.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "apps/**",
+        "packages/**",
+        "scripts/local-prepare.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "tsconfig.json",
+        "playwright.config.ts",
+        ".github/workflows/lab-dashboard.yml",
+      ]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  full-local-stack:
+    # Playwright 1.56.1 supports this fixed browser/dependency image.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTH_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+      - name: Install workspace
+        run: |
+          npm install --global pnpm@10.11.0
+          pnpm install --frozen-lockfile
+      - name: Check types
+        run: pnpm typecheck
+      - name: Run unit tests
+        run: pnpm test
+      - name: Build dashboard
+        shell: bash
+        run: |
+          mkdir -p .runtime
+          if ! pnpm build > .runtime/build.log 2>&1; then
+            cat .runtime/build.log
+            while IFS= read -r line; do printf '::error::%s\n' "$line"; done < .runtime/build.log
+            exit 1
+          fi
+          cat .runtime/build.log
+      - name: Install Chromium
+        shell: bash
+        run: |
+          if ! pnpm exec playwright install --with-deps chromium > .runtime/browser-install.log 2>&1; then
+            cat .runtime/browser-install.log
+            while IFS= read -r line; do printf '::error::%s\n' "$line"; done < .runtime/browser-install.log
+            exit 1
+          fi
+          cat .runtime/browser-install.log
+      - name: Run lab suite API restart and browser flows
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm local:prepare
+          if ! pnpm lab:integration > .runtime/lab-integration.log 2>&1; then
+            cat .runtime/lab-integration.log
+            tail -n 30 .runtime/lab-integration.log | while IFS= read -r line; do printf '::error::%s\n' "$line"; done
+            exit 1
+          fi
+          cat .runtime/lab-integration.log
+          pnpm local:prepare
+          pnpm api:dev > .runtime/api.log 2>&1 &
+          task_api_pid=$!
+          pnpm web:dev > .runtime/web.log 2>&1 &
+          task_web_pid=$!
+          trap 'kill "$task_api_pid" "$task_web_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..40}; do
+            if curl -fsS http://127.0.0.1:8787/api/health && curl -fsS http://127.0.0.1:5173 >/dev/null; then break; fi
+            sleep 1
+          done
+          if ! pnpm exec playwright test > .runtime/browser-test.log 2>&1; then
+            cat .runtime/browser-test.log
+            tail -n 40 .runtime/browser-test.log | while IFS= read -r line; do printf '::error::%s\n' "$line"; done
+            exit 1
+          fi
+          cat .runtime/browser-test.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-dashboard-evidence
+          path: |
+            .runtime/lab-suite.json
+            .runtime/screenshots/
+            .runtime/playwright-results/
+            .runtime/*-install.log
+            .runtime/*-test.log
+            .runtime/lab-integration.log
+            .runtime/build.log
+            .runtime/api.log
+            .runtime/web.log
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,0 +1,68 @@
+.mode-switch {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  min-height: 48px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #090f1d;
+  color: #cbd5e1;
+  border-bottom: 1px solid #334155;
+  font:
+    13px/1.4 Inter,
+    "Segoe UI",
+    sans-serif;
+}
+.mode-switch a {
+  border: 1px solid #475569;
+  border-radius: 7px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.mode-switch a[aria-current="page"] {
+  background: #4264f5;
+  border-color: #4264f5;
+  color: white;
+}
+.mode-switch span {
+  margin-left: auto;
+  font-size: 12px;
+}
+.onchain-app .sidebar {
+  top: 48px;
+}
+.onchain-app {
+  min-height: calc(100vh - 48px);
+}
+@media (max-width: 650px) {
+  .mode-switch {
+    flex-wrap: wrap;
+    min-height: 78px;
+    gap: 6px;
+    padding: 7px 10px;
+  }
+  .mode-switch span {
+    width: 100%;
+    margin-left: 0;
+    font-size: 11px;
+  }
+  .onchain-app .sidebar {
+    top: 78px;
+  }
+}
+
+.simulation-app > header {
+  top: 48px;
+}
+.simulation-app header nav {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+@media (max-width: 650px) {
+  .simulation-app > header {
+    top: 78px;
+  }
+}

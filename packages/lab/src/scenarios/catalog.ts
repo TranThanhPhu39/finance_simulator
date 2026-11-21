@@ -1,157 +1,159 @@
-import { ErrorCode, type ScenarioDefinition } from '@repo/shared';
-
-export const SCENARIO_CATALOG: ScenarioDefinition[] = [
-  {
-    id: 'SC-01',
-    name: 'Tái cân bằng hợp lệ + gửi stablecoin vào Vault',
-    description: 'Agent tính toán kế hoạch tái cân bằng hợp lệ trong hạn mức 24h: bán 10 token A (100 USD) sang USDC và gửi 499 USDC vào Vault sinh lời.',
-    category: 'NORMAL',
-    actionSource: 'AGENT_RULE',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.OK,
-    stepsDescription: [
-      'Đọc snapshot danh mục (600 USDC, 40 Token A giá 10 USD, 0 vUSDC) và chính sách PolicyModule.',
-      'Thực thi SWAP_EXACT_IN bán 10 Token A (100 USD) nhận về USDC trong biên độ slippage 1%.',
-      'Thực thi VAULT_DEPOSIT gửi 499 USDC khả dụng (sau khi giữ reserve 200 USDC) vào Vault ERC-4626.'
-    ]
-  },
-  {
-    id: 'SC-02',
-    name: 'Giao dịch đơn vượt Cap 24h',
-    description: 'Gửi một lệnh swap đầu vào 150 USD vượt quá hạn mức 24h cho phép (100 USD). Hợp đồng phải từ chối và bảo toàn số dư.',
-    category: 'CAP',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_CAP_EXCEEDED,
-    stepsDescription: [
-      'Test harness nâng khối lượng lệnh SWAP_EXACT_IN của Token A lên 15 Token A (150 USD > Cap 100 USD).',
-      'Gửi lệnh qua PolicyModule.executeSwap.',
-      'PolicyModule chặn với lỗi CapExceeded; số dư Safe và bộ đếm chi tiêu 24h giữ nguyên ở 0 USD.'
-    ]
-  },
-  {
-    id: 'SC-03',
-    name: 'Chia nhỏ nhiều lệnh (60 + 30 + 20 USD vượt cap 100 USD)',
-    description: 'Session gửi liên tiếp 3 lệnh swap 60 USD, 30 USD và 20 USD trong cùng cửa sổ 24h. Hai lệnh đầu thành công (tổng 90 USD), lệnh thứ 3 bị chặn.',
-    category: 'CAP',
-    actionSource: 'DIRECT_SESSION_CALL',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_CAP_EXCEEDED,
-    stepsDescription: [
-      'Lệnh 1: Session swap 60 USDC sang Token A (60 USD <= 100 USD) -> Thành công, đã dùng 60 USD.',
-      'Lệnh 2: Session swap 30 USDC sang Token A (60 + 30 = 90 USD <= 100 USD) -> Thành công, đã dùng 90 USD.',
-      'Lệnh 3: Session swap 20 USDC sang Token A (90 + 20 = 110 USD > 100 USD) -> Bị chặn với CapExceeded, tổng chi tiêu giữ đúng 90 USD.'
-    ]
-  },
-  {
-    id: 'SC-04',
-    name: 'Dùng token ngoài whitelist',
-    description: 'Thử swap sang một token lạ chưa được Safe owner cấp phép trong allowedTokens.',
-    category: 'WHITELIST',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_UNAUTHORIZED_TOKEN,
-    stepsDescription: [
-      'Test harness thay đổi tokenOut của bước swap thành địa chỉ token ngoài whitelist (0x2000...0099).',
-      'Gửi lệnh executeSwap qua PolicyModule.',
-      'PolicyModule từ chối với lỗi TokenNotWhitelisted; tài sản và hạn mức của Safe không đổi.'
-    ]
-  },
-  {
-    id: 'SC-05',
-    name: 'Dùng router ngoài whitelist',
-    description: 'Thử định tuyến lệnh swap qua một hợp đồng DEX Router lạ chưa được Safe owner đưa vào allowedRouters.',
-    category: 'WHITELIST',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_UNAUTHORIZED_ROUTER,
-    stepsDescription: [
-      'Test harness sửa targetContract của lệnh swap sang địa chỉ router không nằm trong whitelist (0x3000...0099).',
-      'Gửi lệnh executeSwap qua PolicyModule.',
-      'PolicyModule chặn ngay với lỗi RouterNotWhitelisted trước khi cấp token allowance.'
-    ]
-  },
-  {
-    id: 'SC-06',
-    name: 'Dùng vault ngoài whitelist',
-    description: 'Thử gửi USDC của quỹ vào một hợp đồng ERC-4626 Vault chưa được duyệt trong vaultAssets.',
-    category: 'WHITELIST',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_UNAUTHORIZED_VAULT,
-    stepsDescription: [
-      'Test harness sửa targetContract của lệnh VAULT_DEPOSIT sang địa chỉ vault ngoài whitelist (0x4000...0099).',
-      'Gửi lệnh executeVaultDeposit qua PolicyModule.',
-      'PolicyModule từ chối với lỗi VaultNotWhitelisted; USDC không bị chuyển đi.'
-    ]
-  },
-  {
-    id: 'SC-07',
-    name: 'Chuyển token tới ví lạ ngoài Safe',
-    description: 'Session key thử chỉ định recipient của lệnh swap là một địa chỉ ví ngoài thay vì địa chỉ Safe.',
-    category: 'WHITELIST',
-    actionSource: 'DIRECT_SESSION_CALL',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_INVALID_RECIPIENT,
-    stepsDescription: [
-      'Session key gọi trực tiếp executeSwap với recipient là ví lạ (0x9999...9999).',
-      'PolicyModule kiểm tra recipient == safe và revert ngay với InvalidRecipient.',
-      'Xác nhận số dư ví lạ bằng 0 và số dư Safe không thay đổi.'
-    ]
-  },
-  {
-    id: 'SC-08',
-    name: 'Session Key đã bị thu hồi (Kill-Switch)',
-    description: 'Safe owner đã thu hồi quyền của session key; mọi giao dịch tiếp theo từ session key đó phải bị từ chối.',
-    category: 'SESSION',
-    actionSource: 'DIRECT_SESSION_CALL',
-    supportedEnvs: ['local', 'fuji'],
-    expectedErrorCode: ErrorCode.ERR_SESSION_REVOKED,
-    stepsDescription: [
-      'Safe owner kích hoạt revokeSession(sessionKey) (isRevoked = true).',
-      'Session key thử gửi lệnh executeSwap 50 USDC.',
-      'PolicyModule chặn ngay tại modifier authorized với lỗi SessionRevoked.'
-    ]
-  },
-  {
-    id: 'SC-09',
-    name: 'Giá Oracle quá hạn',
-    description: 'Dữ liệu giá từ Oracle có độ trễ vượt quá maxPriceAgeSec (3600 giây) cho phép của chính sách.',
-    category: 'PRICE',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local'],
-    expectedErrorCode: ErrorCode.ERR_STALE_PRICE,
-    stepsDescription: [
-      'Giá Oracle có timestamp cũ hơn 3601 giây so với block.timestamp hiện tại (maxPriceAgeSec = 3600).',
-      'Gửi lệnh executeSwap 50 USDC qua PolicyModule.',
-      'PolicyModule từ chối với lỗi StalePrice; không có giao dịch nào được thực thi.'
-    ]
-  },
-  {
-    id: 'SC-10',
-    name: 'Router thất bại giữa chừng',
-    description: 'DEX Router gặp lỗi revert trong lúc thực thi swap; toàn bộ trạng thái số dư, allowance và bộ đếm chi tiêu 24h phải được rollback nguyên vẹn.',
-    category: 'EXECUTION',
-    actionSource: 'HARNESS_MUTATED',
-    supportedEnvs: ['local'],
-    expectedErrorCode: ErrorCode.ERR_ROUTER_FAILED,
-    stepsDescription: [
-      'Cấu hình MockRouter ở trạng thái shouldFail = true ("Router: Simulated failure").',
-      'Gửi lệnh executeSwap 50 USDC hợp lệ qua PolicyModule.',
-      'Giao dịch revert và rollback hoàn toàn: số dư Safe giữ nguyên, bộ đếm chi tiêu 24h vẫn bằng 0 USD.'
-    ]
-  }
+import type { OnchainScenarioDefinition } from "@repo/shared";
+const rows: [
+  string,
+  string,
+  OnchainScenarioDefinition["category"],
+  string,
+  string,
+  OnchainScenarioDefinition["source"],
+][] = [
+  [
+    "SC-01",
+    "Danh mục đã cân bằng",
+    "Normal",
+    "Agent không cần giao dịch.",
+    "NO_ACTION, không có giao dịch TEST và tài sản/cap không đổi.",
+    "AGENT_RULE",
+  ],
+  [
+    "SC-02",
+    "Tái cân bằng hợp lệ",
+    "Normal",
+    "Agent tự lập kế hoạch swap và gửi vault.",
+    "Receipt thành công, token và shares về Safe, cap khớp lượng swap.",
+    "AGENT_RULE",
+  ],
+  [
+    "SC-03",
+    "Đúng phần cap còn lại",
+    "Cap",
+    "Swap đúng hạn mức 100 USD.",
+    "Thành công, cap còn lại bằng 0.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-04",
+    "Một lệnh vượt cap",
+    "Cap",
+    "Thử swap 101 USD khi cap là 100 USD.",
+    "CapExceeded; tài sản, allowance và cap không đổi.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-05",
+    "Chia nhỏ vượt tổng cap",
+    "Cap",
+    "Lần lượt swap 60, 30 và 20 USD.",
+    "Hai lệnh đầu thành công; lệnh cuối bị chặn; spent = 90 USD.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-06",
+    "Biên rolling 24 giờ",
+    "Cap",
+    "Kiểm tra ngay trước và tại mốc hết hiệu lực.",
+    "Debit còn ở 24h−1s, hết hiệu lực đúng 24h.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-07",
+    "Token ngoài whitelist",
+    "Whitelist",
+    "Thử tokenIn và tokenOut chưa được duyệt.",
+    "TokenNotWhitelisted; không thay đổi tài sản/cap.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-08",
+    "Router ngoài whitelist",
+    "Whitelist",
+    "Thay router bằng địa chỉ chưa duyệt.",
+    "RouterNotWhitelisted; không tạo allowance cho địa chỉ lạ.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-09",
+    "Recipient là ví lạ",
+    "Whitelist",
+    "Đổi người nhận token đầu ra.",
+    "InvalidRecipient; ví lạ không nhận token.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-10",
+    "Session hết hạn",
+    "Session",
+    "Thực thi tại thời điểm session hết hạn.",
+    "SessionExpired; không có swap mới.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-11",
+    "Session đã thu hồi",
+    "Session",
+    "Owner thu hồi rồi thử lệnh bằng session cũ.",
+    "SessionRevoked; tài sản/cap không đổi.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-12",
+    "Caller chưa được cấp quyền",
+    "Session",
+    "Một caller khác gửi lệnh hợp lệ.",
+    "UnauthorizedSession; tài sản/cap không đổi.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-13",
+    "Nguồn giá quá cũ",
+    "Price",
+    "Dùng giá có tuổi lớn hơn 3600 giây.",
+    "StalePrice; fail closed.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-14",
+    "MinOut yếu hơn policy",
+    "Price",
+    "Đặt minOut bằng 0.",
+    "SlippageExceeded trước approve.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-15",
+    "Router lỗi",
+    "Execution",
+    "Bật chế độ router mô phỏng thất bại.",
+    "ExecutionFailed → lỗi router; token/cap/allowance rollback.",
+    "DIRECT_SESSION_CALL",
+  ],
+  [
+    "SC-16",
+    "Vault ngoài whitelist",
+    "Vault",
+    "Gửi tiền tới vault chưa duyệt.",
+    "VaultNotWhitelisted; tài sản và allowance không đổi.",
+    "HARNESS_MUTATED",
+  ],
+  [
+    "SC-17",
+    "Rút vault về ví lạ",
+    "Vault",
+    "Chuẩn bị vị thế vault rồi đổi recipient rút tiền.",
+    "InvalidRecipient; shares Safe không đổi, ví lạ không nhận token.",
+    "HARNESS_MUTATED",
+  ],
 ];
-
-export function listScenarios(): ScenarioDefinition[] {
-  return SCENARIO_CATALOG.map(s => ({
-    ...s,
-    supportedEnvs: [...s.supportedEnvs],
-    stepsDescription: [...s.stepsDescription]
-  }));
-}
-
-export function getScenarioById(scenarioId: string): ScenarioDefinition | undefined {
-  const found = SCENARIO_CATALOG.find(s => s.id.toUpperCase() === scenarioId.toUpperCase());
-  return found ? { ...found, supportedEnvs: [...found.supportedEnvs], stepsDescription: [...found.stepsDescription] } : undefined;
-}
+export const scenarios: OnchainScenarioDefinition[] = rows.map(
+  ([id, title, category, description, expectation, source]) => ({
+    id,
+    title,
+    category,
+    description,
+    expectation,
+    source,
+    version: "1.0.0",
+    environments: ["local"],
+  }),
+);
+export const listScenarios = () => structuredClone(scenarios);

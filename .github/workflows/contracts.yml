@@ -31,6 +31,8 @@ on:
 
 permissions:
   contents: read
+env:
+  PYTH_OFFLINE: "1"
 
 jobs:
   contracts:
@@ -46,7 +48,7 @@ jobs:
           version: stable
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Format project Solidity
         run: forge fmt --check src/PolicyModule.sol src/interfaces src/libraries test/fixtures test/unit test/integration test/fuzz test/invariant script/DeployLocal.s.sol script/DeployFuji.s.sol
       - name: Build and check contract sizes
@@ -68,7 +70,7 @@ jobs:
           version: stable
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
       - name: Install workspace tools
         run: |
           npm install --global pnpm@10.11.0
